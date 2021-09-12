@@ -5,7 +5,6 @@ import { jsPDF } from "jspdf"
 // var doc = new jsPDF("landscape");
 import 'svg2pdf.js'
 import html2canvas from 'html2canvas'
-import Template from './template'
 import useSWR from 'swr'
 import axios from 'axios'
 // 
