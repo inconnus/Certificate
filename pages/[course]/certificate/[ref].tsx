@@ -87,7 +87,6 @@ const Ref = ({ data }: Ref) => {
             <button className={styles.zoomin} onClick={() => setZoom(Math.min(zoom + 0.1, 1.5))}> <i className="fas fa-plus"></i></button>
             <button className={styles.zoomout} onClick={() => setZoom(Math.max(zoom - 0.1, 0.4))}> <i className="fas fa-minus"></i></button>
             <button className={styles.download} onClick={save}> <i className="fas fa-download"></i></button>
-            {JSON.stringify(data)}
             {/* <button className={styles.download} onClick={() => setIsSave(true)}> <i className="fas fa-download"></i></button> */}
             {/* {isSave && <Preview isSave={isSave} setIsSave={setIsSave} data={sample_data} forSave={true} />} */}
             {/* <Preview data={sample_data} /> */}
@@ -120,17 +119,12 @@ const Ref = ({ data }: Ref) => {
 
 export default Ref
 
-import { GetServerSideProps, GetStaticPaths, GetStaticProps } from 'next'
-
-// export const getStaticPaths: GetStaticPaths = async (context) => {
-//     return {
-//         paths: [],
-//         fallback: true,
-//     }
-// }
-
+import { GetServerSideProps } from 'next'
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const { course, ref } = context.params
+    const res = (await axios.get('https://jsonplaceholder.typicode.com/posts/1')).data
+    console.log(res);
+    
     return {
         props: {
             data: [
