@@ -1,0 +1,81 @@
+@keyframes init 
+    to
+        opacity: 1
+        transform: translateY(0)
+.container
+    height: 100%
+    width: 100%
+    align-items: center
+    overflow: hidden
+    flex-direction: column
+    svg
+        height: 100%
+        width: 100%
+        position: absolute
+        text-anchor: end
+        white-space: pre
+        letter-spacing: 0em
+        overflow: visible
+    button
+        cursor: pointer
+        z-index: 1
+        position: fixed
+        bottom: 20px
+        right: 20px
+        width: 50px
+        height: 50px
+        border-radius: 50%
+        border: none
+        margin: none
+        outline: none
+        background: #FFF
+        box-shadow: 0 0 2px 1px #33333321
+        display: flex
+        align-items: center
+        justify-content: center
+        // opacity: 0
+        // transform: translateX(20px)
+        // animation: init .5s forwards
+        &.zoomout
+            bottom: 80px
+            // transform: translateY(100%)
+            animation-delay: .1s
+        &.zoomin
+            // transform: translateY(100%)
+            bottom: 140px
+            animation-delay: .2s
+        &:active
+            transform: scale(0.96)
+        i
+            color: #F36E21
+            font-size: 1.2em
+    .content_wrap
+        position: absolute
+        left: 0
+        width: 100%
+        height: 100%
+        background: #525659
+        justify-content: center
+        align-items: center
+    .content
+        font-family: 'TH Sarabun New Bold'
+        // width: 50%
+        // padding-bottom: 50%
+        // max-width: 100%
+        width: 100vw
+        height: 72.10vw
+        max-height: 100vh
+        max-width: 138.69vh
+        // margin: auto
+        // height: 100%
+        transition: transform 0.2s
+        // width: 100%
+        // justify-content: center
+        overflow: hidden
+        position: absolute
+        &.save
+            height: 1000px
+        span
+            position: absolute
+            &.normal
+                font-family: 'TH Sarabun New'
