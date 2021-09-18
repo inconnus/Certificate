@@ -36,8 +36,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         console.log(err)
         return res.status(500).json(signed)
       }
-      console.log({ err, response })
-      console.log({ Key: response.fields.key })
+      // console.log({ err, response })
+      // console.log({ Key: response.fields.key })
       signed = response
     })
 
