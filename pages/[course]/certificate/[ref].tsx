@@ -7,6 +7,8 @@ import 'svg2pdf.js'
 import html2canvas from 'html2canvas'
 import useSWR from 'swr'
 import axios from 'axios'
+import PDFDocument from 'pdfkit'
+import font from 'fonts/THSarabunNewBold'
 // 
 const Preview: FC<{ data: string[], forSave?: boolean, isSave?: boolean, setIsSave?: any }> = ({ data, forSave = false, isSave, setIsSave }: any) => {
     const router = useRouter()
@@ -59,28 +61,53 @@ interface Ref { data: string[] }
 const Ref = ({ data }: Ref) => {
     // const data = useMemo(() => raw_data || [], [raw_data])
     const router = useRouter()
-    const [zoom, setZoom] = useState(1)
+    const [zoom, setZoom] = useState<number>(1)
+    const contentRef = useRef<HTMLDivElement>()
+    const wrapRef = useRef<HTMLDivElement>()
+    const svgElement = useRef()
+    const textRef = useRef<SVGTextElement>()
     const [isSave, setIsSave] = useState<boolean>(false)
     // const { data } = useSWR('/api/test', (url) => axios.get(url).then(res => res.data.data), { fallbackData: [] })
-    const save = () => {
-        // const doc = new jsPDF({
-        //     format: 'a5',
-        //     orientation: 'landscape'
-        // })
-        // doc.addFont()
+    const save = async () => {
+        // const cloneNode: HTMLDivElement = contentRef.current.cloneNode(true)
+        // cloneNode.id = 'save_layout'
+        // cloneNode.style.maxWidth = 'none'
+        // cloneNode.style.maxHeight = 'none'
+        // cloneNode.style.height = '1748px'
+        // cloneNode.style.width = '2480px'
 
-        // const element = document.getElementById('template')
-        // doc
-        //     .svg(element, {
-        //         x: 0,
-        //         y: 0,
-        //         width: 100,
-        //         height: 100
-        //     })
-        //     .then(() => {
-        //         // save the created pdf
-        //         doc.save('myPDF.pdf')
-        //     })
+        // wrapRef.current.appendChild(cloneNode)
+        // computedStyleToInlineStyle(contentRef.current, {
+        //     recursive: true,
+        //     properties: ["font-size", "font-family", "font-weight"]
+        // })
+        const canvas = await html2canvas(contentRef.current)
+        // wrapRef.current.appendChild(canvas)
+
+        // wrapRef.current.appendChild(canvas)
+        const doc = new jsPDF({
+            format: 'a4',
+            orientation: 'landscape',
+            unit:'px',
+            compress:true
+        })
+        const width = screen.width
+        // console.log(width);
+        // wrapRef.current.offsetLeft
+        // console.log(getComputedStyle(textRef.current).fontSize)
+        // console.log(doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+
+
+        // console.log(doc.internal.pageSize.getWidth());
+        // return
+        // doc.addFileToVFS("MyFont.ttf", font);
+        // doc.addFont("/fonts/THSarabunNew Bold.ttf", "THSarabunNew Bold", "normal");
+        // doc.setFont("THSarabunNew Bold");
+        // doc.addImage(canvas, 'png', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight())
+        // doc.setFontSize(29)
+        // doc.text('สถาบันวิทยาการหุ่นยนต์ภาคสนาม', 0, 20)
+        await doc.html(contentRef.current)
+        doc.save()
     }
     return (
         <div className={styles.container}>
@@ -90,18 +117,18 @@ const Ref = ({ data }: Ref) => {
             {/* <button className={styles.download} onClick={() => setIsSave(true)}> <i className="fas fa-download"></i></button> */}
             {/* {isSave && <Preview isSave={isSave} setIsSave={setIsSave} data={sample_data} forSave={true} />} */}
             {/* <Preview data={sample_data} /> */}
-            <div className={styles.content_wrap}>
-                <div style={{ transform: `scale(${zoom})` }} className={`${styles.content} `}>
+            <div ref={wrapRef} className={styles.content_wrap}>
+                <div ref={contentRef} style={{ transform: `scale(${zoom})` }} className={`${styles.content} `}>
                     {/* <Template /> */}
                     <img src='/images/template.png' />
-                    <svg viewBox="0 0 630 454" fill="#231F20" >
-                        <text x="612" y="113.75" style={{ fontSize: "29" }}>สถาบันวิทยาการหุ่นยนต์ภาคสนาม</text>
-                        <text x="612" y="148.75" style={{ fontSize: "29" }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</text>
+                    <svg width='297mm' ref={svgElement} viewBox='0 0 841.89 595.28' fill="#231F20" >
+                        <text ref={textRef}  transform="translate(0 20)" fontSize={29} >สถาบันวิทยาการหุ่นยนต์ภาคสนาม</text>
+                        {/* <text x="612" y="148.75" style={{ fontSize: "29" }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</text>
                         <text x="612" y="189.30" style={{ fontSize: "23" }}>ขอมอบประกาศนียบัตรฉบับนี้เพื่อแสดงว่า</text>
                         <TextLoader x={612} y={239.41} w={350} size={48} text={data[0]} />
                         <TextLoader x={612} y={281.81} w={400} size={23} text={data[1]} />
                         <TextLoader x={612} y={309.57} w={200} size={23} text={data[2]} />
-                        <text x="038" y="437.79" style={{ fontSize: "12", textAnchor: 'start', fontFamily: "TH Sarabun New" }}>{`Verify at smartfactory.hcilab.net/certificates/${router.query.ref}`}</text>
+                        <text x="038" y="437.79" style={{ fontSize: "12", textAnchor: 'start', fontFamily: "TH Sarabun New" }}>{`Verify at smartfactory.hcilab.net/certificates/${router.query.ref}`}</text> */}
                     </svg>
                     {/* <span style={{ right: '3.7vh', top: '20.4vh', fontSize: '6.4vh' }}>สถาบันวิทยาการหุ่นยนต์ภาคสนาม</span>
                     <span style={{ right: '3.7vh', top: '28.1vh', fontSize: '6.4vh' }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</span>
@@ -124,7 +151,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     const { course, ref } = context.params
     const res = (await axios.get('https://jsonplaceholder.typicode.com/posts/1')).data
     console.log(res);
-    
+
     return {
         props: {
             data: [
