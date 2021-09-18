@@ -29,7 +29,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       // ],
       Expires: 30,
       // Bucket: path ? `${root_path}/${path}` : `${root_path}/crm-images/products/${id}/${nanoid()}`
-      Bucket: `${root_path}/${id}`
+      Bucket: `${root_path}/${id}.xlsx`
     }, (err, response) => {
       if (err) {
         console.log("Error create presigned post")
