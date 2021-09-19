@@ -2,6 +2,7 @@ process.env.TZ = "Asia/Bangkok"
 import { NextApiRequest, NextApiResponse } from "next"
 import { S3 } from 'aws-sdk'
 import { ulid } from 'ulid'
+import { accessKeyChecking } from "utils";
 
 const region = 'ap-southeast-1';
 const s3 = new S3({
@@ -11,9 +12,10 @@ const s3 = new S3({
 const BUCKET_NAME = 'certificate-generator'
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const { team, ext }: any = req.query
+  const { team, ext, key }: any = req.query
+  if (!accessKeyChecking(key)) return res.status(200).json({ resCode: "400" })
+  
   let signed: any
-
   const id = ulid()
 
   const root_path = `${BUCKET_NAME}/${team}`
