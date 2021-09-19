@@ -3,3 +3,5 @@ export const convertQueryParamsToFilters = (item: any) => {
   for (const key in item) filters.push([key, item[key]])
   return filters
 }
+
+export const accessKeyChecking = (key:string) => key === process.env.ACCESS_KEY
