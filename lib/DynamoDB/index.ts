@@ -31,13 +31,13 @@ export const query = async (fn: QUERY) => {
     Limit: fn.limit
   }
 
-  return new Promise<any[]>(resolve => {
+  return new Promise<any>(resolve => {
     client.query(params, (err, data) => {
       if (err) {
         console.log(err)
         resolve([])
       }
-      resolve(data.Items ?? [])
+      resolve({ data: data.Items, lastEvaluatedKey: data.LastEvaluatedKey })
     })
   })
 }
@@ -61,13 +61,13 @@ export const querySort = async (fn: QUERY_SORT) => {
     Limit: fn.limit
   }
   // console.log({params})
-  return new Promise<any[]>(resolve => {
+  return new Promise<any>(resolve => {
     client.query(params, (err, data) => {
       if (err) {
         console.log(err)
         resolve([])
       }
-      resolve(data.Items ?? [])
+      resolve({ data: data.Items, lastEvaluatedKey: data.LastEvaluatedKey })
     })
   })
 }
@@ -124,15 +124,16 @@ export const queryIndexBetween = async (fn: QUERY_INDEX_BETWEEN) => {
       ":END": fn.end,
     },
     ProjectionExpression: fn.project ? Object.keys(expName).join() : null,
-    Limit: fn.limit
+    Limit: fn.limit,
+    ExclusiveStartKey: fn.lastEvaluatedKey
   }
-  return new Promise<any[]>(resolve => {
+  return new Promise<any>(resolve => {
     client.query(params, (err, data) => {
       if (err) {
         console.log(err)
         resolve([])
       }
-      resolve(data.Items ?? [])
+      resolve({ data: data.Items, lastEvaluatedKey: data.LastEvaluatedKey })
     })
   })
 }
@@ -172,16 +173,17 @@ export const queryIndexSort = async (fn: QUERY_INDEX_SORT) => {
     },
     FilterExpression: filExp,
     ProjectionExpression: fn.project ? Object.keys(expName).join() : null,
-    Limit: fn.limit
+    Limit: fn.limit,
+    ExclusiveStartKey: fn.lastEvaluatedKey
   }
   // console.log({ params })
-  return new Promise<any[]>(resolve => {
+  return new Promise<any>(resolve => {
     client.query(params, (err, data) => {
       if (err) {
         console.log(err)
         resolve([])
       }
-      resolve(data.Items ?? [])
+      resolve({ data: data.Items, lastEvaluatedKey: data.LastEvaluatedKey })
     })
   })
 }
