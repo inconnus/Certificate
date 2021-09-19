@@ -16,6 +16,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     sk: 'timestamp',
     start: Number(from),
     end: Number(to),
+    limit: limit,
     lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
   })) ?? []
   return res.status(200).json({

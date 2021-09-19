@@ -4,14 +4,14 @@ import { queryIndex } from "lib/DynamoDB"
 import { accessKeyChecking } from "utils"
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const { course, key, lastEvaluatedKey }: any = req.query
+  const { course, key, limit, lastEvaluatedKey }: any = req.query
   if (!accessKeyChecking(key)) return res.status(200).json({ resCode: "400" })
   const found_matches = (await queryIndex({
     tableName: process.env.TABLE_NAME,
     indexName: process.env.INDEX_EMAIL,
     pk: 'organizer',
     pv: course,
-    limit: 2,
+    limit: limit,
     lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
   })) ?? []
   return res.status(200).json({

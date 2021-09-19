@@ -16,6 +16,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     sk: 'firstName',
     sv: text.toLowerCase().trim(),
     filters: filters,
+    limit: limit,
     lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
   })) ?? []
   return res.status(200).json({

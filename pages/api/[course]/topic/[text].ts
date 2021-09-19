@@ -15,6 +15,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     pv: course,
     sk: 'trainingTopic',
     sv: text.toLowerCase().trim(),
+    limit: limit,
     filters: filters,
     lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
   })) ?? []
