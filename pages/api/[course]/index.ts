@@ -9,7 +9,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     indexName: process.env.INDEX_EMAIL,
     pk: 'organizer',
     pv: course,
-  })) ?? []
+  })).data ?? []
   return res.status(200).json({
     resCode: "200",
     data: found_matches
