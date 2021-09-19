@@ -8,6 +8,16 @@ export type QUERY = {
   project?: PROJECT_KEYS | []
 }
 
+export type QUERY_INDEX = {
+  tableName: string
+  indexName: string
+  pk: string
+  pv: string | number
+  project?: PROJECT_KEYS
+  limit?: number,
+  lastEvaluatedKey?: any
+}
+
 export type QUERY_INDEX_BETWEEN = {
   tableName: string
   indexName: string

@@ -1,5 +1,5 @@
 import * as AWS from 'aws-sdk'
-import type { QUERY, QUERY_BETWEEN, QUERY_INDEX_BETWEEN, QUERY_INDEX_SORT, QUERY_SORT } from './index.d'
+import type { QUERY, QUERY_BETWEEN, QUERY_INDEX, QUERY_INDEX_BETWEEN, QUERY_INDEX_SORT, QUERY_SORT } from './index.d'
 import { customAlphabet } from 'nanoid'
 
 AWS.config.update({
@@ -68,6 +68,38 @@ export const querySort = async (fn: QUERY_SORT) => {
         resolve([])
       }
       resolve(data.Items ?? [])
+    })
+  })
+}
+
+export const queryIndex = async (fn: QUERY_INDEX) => {
+  let expName: AWS.DynamoDB.ExpressionAttributeNameMap
+  if (fn.project) expName = generateKeyProjection(fn.project)
+
+  let params: AWS.DynamoDB.DocumentClient.QueryInput = {
+    TableName: fn.tableName,
+    IndexName: fn.indexName,
+    ScanIndexForward: false,
+    KeyConditionExpression: "#ID = :ID",
+    ExpressionAttributeNames: {
+      "#ID": fn.pk,
+      ...expName
+    },
+    ExpressionAttributeValues: {
+      ":ID": fn.pv
+    },
+    ProjectionExpression: fn.project ? Object.keys(expName).join() : null,
+    Limit: fn.limit,
+    ExclusiveStartKey: fn.lastEvaluatedKey
+  }
+  return new Promise<any>(resolve => {
+    client.query(params, (err, data) => {
+      if (err) {
+        // console.log(err)
+        resolve([])
+      }
+      // console.log({ data });
+      resolve({ data: data?.Items ?? [], lastEvaluatedKey: data?.LastEvaluatedKey })
     })
   })
 }
