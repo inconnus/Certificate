@@ -24,7 +24,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         ACL: "public-read",
       },
       Expires: 30,
-      Bucket: `${root_path}/${id}.${ext}`
+      Bucket: `${root_path}/input/${id}.${ext}`
     }, (err, response) => {
       if (err) {
         console.log("Error create presigned post")
