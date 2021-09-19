@@ -1,0 +1,89 @@
+@keyframes passcode-fadein
+    to
+        transform: translate3d(0,0,0)
+        opacity: 1
+@keyframes passcode-fadeout
+    to
+        transform: translate3d(0,30%,0) 
+        opacity: 0 
+@keyframes fade-inx
+    0%
+        opacity: 0
+    100%
+        opacity: 1
+@keyframes fade-out
+    0%
+        opacity: 1
+    100%
+        opacity: 0
+@keyframes stack-bottom
+    0%
+        transform: translate3d(0,30%,0)
+        opacity: 1
+    100%
+        transform: translate3d(0,0,0)
+@keyframes stack-bottom-close
+    0%
+        transform: translate3d(0,0,0)
+    100%
+        transform: translate3d(0,30%,0)
+@keyframes dialog-open
+    to
+        transform: translateY(0)
+    // 0%
+    //     transform: scale(0.3)
+    // 60%
+    //     transform: scale(1.05)
+    // 80%
+    //     transform:  scale(0.95)
+    // 100%
+    //     transform:  scale(1)
+@keyframes dialog-close
+    from
+        transform: translateY(0)
+    to
+        transform: translateY(-50%)
+
+.dataslot_modal_container
+    position: fixed
+    display: flex
+    overflow: hidden
+    width: 100vw
+    
+    height: 100vh
+    background: rgba(0, 0, 0, 0.75)
+    z-index: 999
+    // will-change: transform
+    // transform: translate3d(0.0,0.0,0.0)
+    // backdrop-filter: blur(1px)
+    align-items: center
+    justify-content: center
+    animation: fade-inx .3s forwards
+    &.not_active
+        animation: fade-out .3s forwards
+        
+    .dataslot_modal_content
+        scroll-snap-align: start
+        flex-shrink: 0
+        position: relative
+        // height: 100px
+        display: flex
+        justify-content: center
+        flex-direction: column
+        background: #FFF
+        overflow: hidden
+        border-radius: 5px
+        // width: 85vw
+        max-width: 90vw
+        transform: translateY(-50%)
+        animation: dialog-open .5s forwards
+        &.not_active
+            animation: dialog-close .5s forwards
+        
+        .close_btn
+            cursor: pointer
+            top: 13px
+            position: absolute
+            right: 13px
+            z-index: 999
+            color: #888
