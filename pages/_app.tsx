@@ -11,6 +11,7 @@ function App({ Component, pageProps }: AppProps) {
         <link rel="icon" href="/images/fav.png" sizes="32x32" />
         <title>Certificate</title>
       </Head>
+      <div id='overlay' />
       <SideBar />
       <Component {...pageProps} />
     </>
