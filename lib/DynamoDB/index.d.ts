@@ -38,6 +38,7 @@ export type QUERY_INDEX_SORT = {
   sk: string
   sv: string
   project?: PROJECT_KEYS
+  filters?: any
   limit?: number
 }
 
