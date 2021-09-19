@@ -1,21 +1,95 @@
-import React, { ChangeEvent, FormEvent, useEffect, MouseEvent, useRef, useState } from 'react'
+import React, { ChangeEvent, FormEvent, useEffect, MouseEvent, useRef, useState, FC, useMemo, KeyboardEvent } from 'react'
 import styles from './index.module.sass'
 import Link from 'next/link'
 import axios from 'axios'
 import { useModal } from 'widgets/Modal'
-import { useIntersection } from 'hooks'
+import { useIntersection, useSWRScroll } from 'hooks'
 const easeOutQuint = (x: number): number => 1 - Math.pow(1 - x, 5)
+
+const Upload: FC<any> = ({ onSuccess }) => {
+    const [text, setText] = useState('')
+    const selectRef = useRef<HTMLSelectElement>()
+    const fileRef = useRef<HTMLInputElement>()
+
+    const onChange = async (e: ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files.length) return
+        setText(e.currentTarget.files[0].name)
+    }
+    const onUpload = async (e: MouseEvent<HTMLButtonElement>) => {
+        const presignRes = await axios.get(`/api/getPresignedUrl?team=${selectRef.current.value}&ext=${fileRef.current.files[0].name.split('.')[1]}`)
+        const config = {
+            headers: {
+                "x-amz-acl": "public-read",
+                "Content-Type": fileRef.current.files[0].type
+            },
+            onUploadProgress: (event: any) => {
+                console.log(event);
+            }
+        }
+        const uploadRes = await axios.put(presignRes.data.url, fileRef.current.files[0], config)
+        fileRef.current.value = ''
+        console.log(uploadRes);
+    }
+    useEffect(() => {
+        const team = localStorage.getItem('TEAM')
+        selectRef.current.value = team
+    }, [])
+    return (
+        <div className={styles.import}>
+            <span style={{ fontSize: '1.2em' }}>นำเข้ารายชื่อ</span>
+            <div className={styles.upload}>
+                <div style={{ alignItems: 'center' }}>
+                    <label htmlFor='upload'>เลือกไฟล์</label>
+                    <input ref={fileRef} id='upload' onChange={onChange} type='file' accept='.xlsx,.xls' />
+                    <span>{text ? text : 'ไม่ได้เลือกไฟล์'}</span>
+                </div>
+                <label>*.xls,*.xlsx</label>
+            </div>
+            <div className={styles.template}>
+                <Link href='https://certificate-generator.s3.ap-southeast-1.amazonaws.com/template.xlsx'>
+                    <a>ไฟล์ Template (*xlsx) สำหรับส่งรายชื่อเข้าสู่ระบบ</a>
+                </Link>
+            </div>
+            <div className={styles.confirm} style={{ flexShrink: 0, display: 'flex' }}>
+                <select ref={selectRef} name='team' >
+                    <option value='smartfactory'>Smart Factory</option>
+                    <option value='3dtelepringting'>Tele-3D Printing</option>
+                </select>
+                <input name='password' type='password' placeholder='Password' />
+                <button disabled={!text} onClick={onUpload}>
+                    <i className="fas fa-upload"></i>
+                    <span>อัพโหลด</span>
+                </button>
+            </div>
+
+        </div>
+    )
+}
 const index = () => {
     const [ModalWrapper, modal, setModal] = useModal()
     const isScrolling = useRef<boolean>(false)
     const [isScroll, setIsScroll] = useState(false)
+    const [isStart, setStart] = useState(false)
+    const [error, setError] = useState(false)
+    const [currentCourse, setCurrentCourse] = useState('')
+    const [currentKey, setCurrentKey] = useState('')
     const selectRef = useRef<HTMLSelectElement>()
     const passwordRef = useRef<HTMLInputElement>()
+    const { swr: { data: rawData, size, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(isStart ? `/api/${currentCourse}?key=${currentKey}` : null)
+    const data = useMemo(() => rawData && rawData.flatMap(item => item.data), [rawData])
     const [pageInterRef, contetnIntersecRef] = useIntersection(async (entries: IntersectionObserverEntry[]) => {
         const ratio = entries[0].intersectionRatio
         if (!ratio) setIsScroll(true)
         else setIsScroll(false)
     }, [])
+    useEffect(() => {
+        if (!data) return
+        if (!data.every(item => item)) {
+            setError(true)
+            console.log('error');
+        }
+        else setError(false)
+    }, [data])
     const scrollTop = () => {
         isScrolling.current = true
         const pos = pageInterRef.current.scrollTop
@@ -30,29 +104,26 @@ const index = () => {
         }
         window.requestAnimationFrame(step)
     }
-    const onUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files.length) return
-        const res = await axios.get(`/api/getPresignedUrl?team=smartfactory&ext=${e.target.files[0].name.split('.')[1]}`)
-        const url = res.data.url
-        const config = {
-            headers: {
-                "x-amz-acl": "public-read",
-                "Content-Type": e.target.files[0].type
-            },
-            onUploadProgress: (event: any) => {
-                console.log(event);
-            }
-        }
-        e.target.value = ''
-        const resx = await axios.put(url, e.target.files[0], config)
-    }
-    const onQuery = (e: ChangeEvent<HTMLButtonElement>) => {
+
+    const onQuery = () => {
         const password = passwordRef.current.value
         const team = selectRef.current.value
+        setStart(true)
+        setCurrentCourse(team)
+        setCurrentKey(password)
+        // mutate()
         console.log(password, team);
+    }
+    const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') onQuery()
     }
     const onImport = (e: MouseEvent<HTMLButtonElement>) => {
         setModal({ name: 'import' })
+    }
+    const onExport = async (e: MouseEvent<HTMLButtonElement>) => {
+        const res = await axios.post(`/api/export/${currentCourse}`, data)
+        location.href = res.data.path
+        console.log(res.data);
     }
     const onTeamChange = (e: ChangeEvent<HTMLSelectElement>) => {
         const value = e.currentTarget.value
@@ -65,30 +136,37 @@ const index = () => {
     return (
         <div className={styles.page}>
             <ModalWrapper name='import'>
-                <div className={styles.import}>
-                    a
-                </div>
+                <Upload onSuccess={() => { }} />
             </ModalWrapper>
             <div className={styles.header}>
                 <span>ข้อมูล Cerificate</span>
             </div>
             {/* <button onClick={onUpload}>dd</button> */}
             <div className={styles.console}>
-                <button onClick={onImport}>
-                    <i className="fas fa-file-import"></i>
-                    <span>นำเข้าไฟล์</span>
-                </button>
+                <div style={{ flexShrink: 0 }}>
+                    <button onClick={onImport}>
+                        <i className="fas fa-file-import"></i>
+                        <span>นำเข้าไฟล์</span>
+                    </button>
+
+                </div>
+                {/* <form id='query'> */}
                 <div style={{ flexShrink: 0, display: 'flex' }}>
+                    <button style={{ background: '#0E324C', marginRight: '10px' }} onClick={onExport}>
+                        <i className="fas fa-file-excel"></i>
+                        <span>Download as Excel</span>
+                    </button>
                     <select onChange={onTeamChange} ref={selectRef} name='team' >
                         <option value='smartfactory'>Smart Factory</option>
-                        <option value='tele'>Tele-3D Printing</option>
+                        <option value='3dtelepringting'>Tele-3D Printing</option>
                     </select>
-                    <input ref={passwordRef} name='password' type='password' placeholder='Password' />
+                    <input onKeyUp={onKeyUp} ref={passwordRef} name='password' type='password' placeholder='Password' />
                     <button onClick={onQuery}>
                         <i className="fas fa-search"></i>
                         <span>ค้นหา</span>
                     </button>
                 </div>
+                {/* </form> */}
                 {/* <input id='upload' onChange={onUpload} type='file' accept='.xlsx,.xls' />
                 <label htmlFor='upload'>d</label> */}
 
@@ -119,25 +197,29 @@ const index = () => {
                     </div>
                     <div className={styles.flexible} >
                         <span>  URL</span>
-                        <input />
+                        {/* <input /> */}
                     </div>
                 </div>
+                {!isStart && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กรุณาใส่รหัสผ่านเพื่อค้นหา</span>}
+                {error && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>รหัสผ่านไม่ถูกต้อง</span>}
 
-                {[...Array(50)].map((item, index) => (
+                {data?.every(item => item) && data?.map((item, index) => (
                     <div key={index} className={styles.item}>
                         <div className={styles.fixed}><span>{index + 1 * 10}</span></div>
-                        <div className={styles.fixed}><span>Chindanai</span></div>
-                        <div className={styles.fixed}><span>Mala-eiam</span></div>
-                        <div className={styles.fixed}><span>Iot Devlelopment</span></div>
+                        <div className={styles.fixed}><span>{item.firstName}</span></div>
+                        <div className={styles.fixed}><span>{item.lastName}</span></div>
+                        <div className={styles.fixed}><span>{item.trainingTopic}</span></div>
                         <div className={styles.fixed}><span>48 Dec 2048</span></div>
-                        <div className={styles.fixed}><span>chindanai.mal@gmail.com</span></div>
+                        <div className={styles.fixed}><span>{item.email}</span></div>
                         <div className={styles.flexible}>
                             <Link href={'https://smartfactory.hcilab.net/certificates/sAldkwosdqqwdqwd'}>
-                                <a>https://smartfactory.hcilab.net/certificates/sAldkwosdqqwdqwd</a>
+                                <a>{`https://smartfactory.hcilab.net/certificates/${item.code}`}</a>
                             </Link>
                         </div>
                     </div>
                 ))}
+                {isValidating && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กำลังค้นหา...</span>}
+                <div style={{ display: data && data?.every(item => item) ? 'flex' : 'none' }} className={styles.loader_item} ref={conRef} />
                 <div style={{ position: 'absolute', left: 0, height: '45px', top: '0' }} ref={contetnIntersecRef} />
             </div>
             {isScroll && <button onClick={scrollTop} className={styles.scroll_top_btn}>

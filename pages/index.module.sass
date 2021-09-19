@@ -7,11 +7,111 @@
     to
         opacity: 1
         transform: translateY(0) scale(1)
-        
+.loader_item
+    // position: absolute
+    // background: #000
+    width: 100%
+    height: 1px
+    bottom: 0
+    pointer-events: none
+    flex: 0 0 auto
 .import
-    width: 200px
-    height: 100px
+    width: 550px
+    // height: 100px
     background: #FFF
+    padding: 20px
+    flex-direction: column
+    .template
+        background: #f2741425
+        margin-top: 15px
+        padding: 9px 15px
+        font-size: 0.8em
+        border-radius: 5px
+        a
+            color: #F27314
+            text-decoration: none
+
+    .upload
+        // padding: 5px 0
+        margin-top: 5px
+        border-radius: 30px
+        // border: 1px solid #ccc
+        box-shadow: inset 0px 0px 0px 1px #ddd
+        box-sizing: border-box
+        align-items: center
+        justify-content: space-between
+        height: 40px
+        label
+            background: #E9ECEF
+            display: flex
+            align-items: center
+            color: #111
+            border: none
+            outline: none
+            margin: none
+            border-radius: 50px
+            padding: 4px 25px 4px 22px
+            height: 30px
+
+            font-size: 0.8em
+            cursor: pointer
+            flex-shrink: 0
+            margin-right: 10px
+            &:last-child
+                background: none
+                color: #555
+                margin-right: 0
+                cursor: default
+                font-size: 0.8em
+
+        span
+            font-size: 0.8em
+            color: #555
+        input
+            display: none
+    .confirm
+        margin-top: 15px
+        font-size: 0.9em
+        button
+            background: #F27314
+            display: flex
+            align-items: center
+            color: #FFF
+            border: none
+            outline: none
+            margin: none
+            border-radius: 50px
+            padding: 6px 23px 6px 20px
+            font-size: 0.9em
+            height: 40px
+            cursor: pointer
+            flex-shrink: 0
+            &:disabled
+                background: #999
+            span
+                margin-top: 1px
+            i
+                margin-right: 10px
+                margin-top: -1px
+        input
+            width: 100%
+            box-sizing: border-box
+            border-radius: 30px
+            outline: none
+            margin: none
+            border: 1px solid #ddd
+            padding: 5px 15px
+            padding-top: 5px
+            box-sizing: border-box
+            margin-right: 10px
+            font-size: 0.9em
+        select
+            border-radius: 30px
+            border: 1px solid #ddd
+            padding: 5px 5px 5px 15px
+            overflow: hidden
+            margin-right: 10px
+            font-size: 0.9em
 .page
     flex-direction: column
     width: 100%
@@ -34,7 +134,7 @@
         border: 1px solid #ddd
         padding: 4px 0 4px 15px
         overflow: hidden
-    
+
     .header
         padding: 20px 20px 0 20px
         span
@@ -55,7 +155,6 @@
         input[type=password],select
             line-height: 0.9em
             box-sizing: border-box
-            padding-top: 6px
         button
             background: #F27314
             display: flex
@@ -65,15 +164,12 @@
             outline: none
             margin: none
             border-radius: 50px
-            padding: 6px 23px 6px 20px
+            padding: 8px 23px 8px 20px
             font-size: 0.9em
             cursor: pointer
             flex-shrink: 0
-            span
-                margin-top: 1px
             i
                 margin-right: 10px
-                margin-top: -1px
     .scroll_top_btn
         position: fixed
         bottom: 20px
@@ -102,7 +198,7 @@
         -webkit-overflow-scrolling: touch
         border-top: 1px solid #eee
         padding-bottom: 80px
-        
+
         span
             text-overflow: ellipsis
             overflow: hidden
@@ -133,7 +229,7 @@
 
             input
                 // margin-left: -5px
-                margin-top: 2px
+                // margin-top: 2px
             &:first-child
                 // background: #F8F8F8 !important
                 border-bottom: 1px solid #eee
@@ -169,4 +265,3 @@
                 flex-basis: 150px
             &:nth-child(6)
                 flex-basis: 200px
-                
