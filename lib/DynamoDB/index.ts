@@ -74,7 +74,15 @@ export const querySort = async (fn: QUERY_SORT) => {
 
 export const queryIndex = async (fn: QUERY_INDEX) => {
   let expName: AWS.DynamoDB.ExpressionAttributeNameMap
+  let filExpAttrNames: AWS.DynamoDB.ExpressionAttributeNameMap
+  let filExpAttrVaules: AWS.DynamoDB.ExpressionAttributeValueMap
+  let filExp: any
   if (fn.project) expName = generateKeyProjection(fn.project)
+  if (fn.filters.length !== 0) {
+    filExpAttrNames = generateFilterExpressionAttributeNames(fn.filters)
+    filExpAttrVaules = generateFilterExpressionAttributeValues(fn.filters)
+    filExp = fn.filters.map((item: any) => `#${item[0]}=:${item[0]}`).join(' AND ')
+  }
 
   let params: AWS.DynamoDB.DocumentClient.QueryInput = {
     TableName: fn.tableName,
@@ -83,15 +91,19 @@ export const queryIndex = async (fn: QUERY_INDEX) => {
     KeyConditionExpression: "#ID = :ID",
     ExpressionAttributeNames: {
       "#ID": fn.pk,
-      ...expName
+      ...expName,
+      ...filExpAttrNames
     },
     ExpressionAttributeValues: {
-      ":ID": fn.pv
+      ":ID": fn.pv,
+      ...filExpAttrVaules
     },
+    FilterExpression: filExp,
     ProjectionExpression: fn.project ? Object.keys(expName).join() : null,
     Limit: fn.limit,
     ExclusiveStartKey: fn.lastEvaluatedKey
   }
+  // console.log({ params })
   return new Promise<any>(resolve => {
     client.query(params, (err, data) => {
       if (err) {
@@ -138,6 +150,7 @@ export const queryIndexBetween = async (fn: QUERY_INDEX_BETWEEN) => {
     Limit: fn.limit,
     ExclusiveStartKey: fn.lastEvaluatedKey
   }
+  // console.log({ params })
   return new Promise<any>(resolve => {
     client.query(params, (err, data) => {
       if (err) {

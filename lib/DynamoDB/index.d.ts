@@ -14,7 +14,8 @@ export type QUERY_INDEX = {
   pk: string
   pv: string | number
   project?: PROJECT_KEYS
-  limit?: number,
+  limit?: number
+  filters?: any
   lastEvaluatedKey?: any
 }
 
