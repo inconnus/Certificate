@@ -28,6 +28,7 @@ export type QUERY_INDEX_BETWEEN = {
   end: string | number
   project?: PROJECT_KEYS
   limit?: number
+  filters?: any
   lastEvaluatedKey?: any
 }
 

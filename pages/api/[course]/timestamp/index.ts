@@ -17,7 +17,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     start: Number(from),
     end: Number(to),
     limit: limit,
-    lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+    lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined,
+    filters: filters
   })) ?? []
   return res.status(200).json({
     resCode: "200",

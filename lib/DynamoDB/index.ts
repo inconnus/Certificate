@@ -106,7 +106,15 @@ export const queryIndex = async (fn: QUERY_INDEX) => {
 
 export const queryIndexBetween = async (fn: QUERY_INDEX_BETWEEN) => {
   let expName: AWS.DynamoDB.ExpressionAttributeNameMap
+  let filExpAttrNames: AWS.DynamoDB.ExpressionAttributeNameMap
+  let filExpAttrVaules: AWS.DynamoDB.ExpressionAttributeValueMap
+  let filExp: any
   if (fn.project) expName = generateKeyProjection(fn.project)
+  if (fn.filters.length !== 0) {
+    filExpAttrNames = generateFilterExpressionAttributeNames(fn.filters)
+    filExpAttrVaules = generateFilterExpressionAttributeValues(fn.filters)
+    filExp = fn.filters.map((item: any) => `#${item[0]}=:${item[0]}`).join(' AND ')
+  }
 
   let params: AWS.DynamoDB.DocumentClient.QueryInput = {
     TableName: fn.tableName,
@@ -116,13 +124,16 @@ export const queryIndexBetween = async (fn: QUERY_INDEX_BETWEEN) => {
     ExpressionAttributeNames: {
       "#ID": fn.pk,
       "#SK": fn.sk,
-      ...expName
+      ...expName,
+      ...filExpAttrNames
     },
     ExpressionAttributeValues: {
       ":ID": fn.pv,
       ":BGW": fn.start,
       ":END": fn.end,
+      ...filExpAttrVaules
     },
+    FilterExpression: filExp,
     ProjectionExpression: fn.project ? Object.keys(expName).join() : null,
     Limit: fn.limit,
     ExclusiveStartKey: fn.lastEvaluatedKey
