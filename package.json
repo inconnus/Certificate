@@ -20,6 +20,7 @@
     "next": "11.1.2",
     "pdfkit": "^0.12.3",
     "react": "17.0.2",
+    "react-bootstrap-daterangepicker": "^7.0.0",
     "react-dom": "17.0.2",
     "sass": "^1.39.2",
     "svg2pdf.js": "^2.1.0",

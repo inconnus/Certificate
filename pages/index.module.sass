@@ -7,6 +7,41 @@
     to
         opacity: 1
         transform: translateY(0) scale(1)
+.date_picker
+    width: 100%
+    height: 32px
+    box-sizing: border-box
+    border-radius: 30px
+    outline: none
+    margin: none
+    border: 1px solid #ddd
+    padding: 4px 15px
+    font-weight: normal
+    align-items: center
+    font-size: 0.95em
+    .date
+        width: 100%
+        height: 100%
+        cursor: pointer
+        position: relative
+    input[type=date]
+        width: 100% !important
+        height: 100%
+        position: absolute
+        background: none
+        border: none !important
+        margin: 0 !important
+        padding: 0 !important
+        &::-webkit-datetime-edit
+            display: none !important
+        &::-webkit-calendar-picker-indicator
+            cursor: pointer
+            margin: 0
+            color: transparent !important
+            background: none
+            padding: 0
+            width: 100%
+            height: 100%
 .loader_item
     // position: absolute
     // background: #000
@@ -105,6 +140,7 @@
             box-sizing: border-box
             margin-right: 10px
             font-size: 0.9em
+        
         select
             border-radius: 30px
             border: 1px solid #ddd
@@ -129,6 +165,8 @@
         margin: none
         border: 1px solid #ddd
         padding: 4px 15px
+        color: #0e324c
+    
     select
         border-radius: 30px
         border: 1px solid #ddd
@@ -243,6 +281,8 @@
                 transform: none
 
                 animation: none
+                input
+                    font-weight: normal !important
             &:nth-child(odd)
                 // background: #F5F5FA
         .fixed
@@ -260,9 +300,12 @@
             &:nth-child(2),&:nth-child(3)
                 flex-basis: 100px
                 min-width: 50px
-            &:nth-child(4),&:nth-child(5)
-                min-width: 100px
             &:nth-child(4)
+                min-width: 100px
                 flex-basis: 150px
+            &:nth-child(5)
+                min-width: 195px
+            // &:nth-child(4)
+                
             &:nth-child(6)
                 flex-basis: 230px

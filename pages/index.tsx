@@ -5,8 +5,45 @@ import axios from 'axios'
 import { useModal } from 'widgets/Modal'
 import { useIntersection, useSWRScroll } from 'hooks'
 import dayjs from 'dayjs'
+import 'dayjs/locale/th'
+import DateRangePicker from 'react-bootstrap-daterangepicker';
 const easeOutQuint = (x: number): number => 1 - Math.pow(1 - x, 5)
 
+
+const DatePicker: FC<any> = ({ onChange }) => {
+    const [dateText, setDateText] = useState({ from: '', to: '' })
+    const fromRef = useRef(null)
+    const toRef = useRef(null)
+    const onInputChange = (e: ChangeEvent<HTMLInputElement>, key: string) => {
+        const value = e.currentTarget.value
+        console.log(key, fromRef.current.value);
+
+        if (!fromRef.current.value || !toRef.current.value || dayjs(toRef.current.value).isBefore(dayjs(fromRef.current.value))) {
+            toRef.current.value = value
+            fromRef.current.value = value
+            setDateText({ from: dayjs(value).format('DD/MM/YYYY'), to: dayjs(value).format('DD/MM/YYYY') })
+        }
+        else setDateText({ from: dayjs(fromRef.current.value).format('DD/MM/YYYY'), to: dayjs(toRef.current.value).format('DD/MM/YYYY') })
+        // setDateText({ ...dateText, [key]: dayjs(value).format('DD/MM/YYYY') })
+        onChange(dayjs(fromRef.current.value).unix(), dayjs(toRef.current.value).unix())
+        console.log(dayjs(value).unix());
+
+    }
+    return (
+        <div className={styles.date_picker}>
+            <div className={styles.date}>
+                <span>{dateText.from}</span>
+                <input ref={fromRef} onChange={e => onInputChange(e, 'from')} style={{ width: '150px' }} type="date" />
+            </div>
+            <span style={{ margin: '0 5px', flexShrink: 0 }}>-</span>
+            <div className={styles.date}>
+                <span>{dateText.to}</span>
+                <input ref={toRef} onChange={e => onInputChange(e, 'to')} style={{ width: '150px' }} type="date" />
+            </div>
+
+        </div>
+    )
+}
 const Upload: FC<any> = ({ onSuccess }) => {
     const [text, setText] = useState('')
     const selectRef = useRef<HTMLSelectElement>()
@@ -75,15 +112,15 @@ interface Filter {
     lastName: string,
     email: string,
     timestamp: string,
-    topic: string
+    trainingTopic: string,
+    from: number,
+    to: number
 }
 const filterHandler = (filter: Filter, currentCourse: string, currentKey: string) => {
     const data = Object.entries(filter)
     const hasValue = data.filter(item => item[1])
-    const main = hasValue[0]
-    const optional = hasValue.slice(1)
-    const optionalStringQuery = optional.reduce((sum, cur) => sum += `${cur[0]}=${cur[1]}&`, '').slice(0, -1)
-    let path = `/api/${currentCourse}/${main[0]}/${main[1]}?key=${currentKey}`
+    const optionalStringQuery = hasValue.reduce((sum, cur) => sum += `${cur[0]}=${cur[1]}&`, '').slice(0, -1)
+    let path = `/api/${currentCourse}/search?key=${currentKey}`
     if (optionalStringQuery) path += `&${optionalStringQuery}`
     return path
 }
@@ -98,14 +135,16 @@ const index = () => {
         lastName: '',
         email: '',
         timestamp: '',
-        topic: ''
+        trainingTopic: '',
+        from: null,
+        to: null
     })
     const [filterTimer, setFilterTimer] = useState<NodeJS.Timeout>()
     const [currentCourse, setCurrentCourse] = useState('')
     const [currentKey, setCurrentKey] = useState('')
     const selectRef = useRef<HTMLSelectElement>()
     const passwordRef = useRef<HTMLInputElement>()
-    const { swr: { data: rawData, size, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(currentKey ? (Object.values(filter).some(item => item) ? filterHandler(filter, currentCourse, currentKey) : `/api/${currentCourse}?key=${currentKey}`) : null)
+    const { swr: { data: rawData, size, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(currentKey ? (filterHandler(filter, currentCourse, currentKey)) : null)
     const data = useMemo(() => rawData && rawData.flatMap(item => item.data), [rawData])
     const [pageInterRef, contetnIntersecRef] = useIntersection(async (entries: IntersectionObserverEntry[]) => {
         const ratio = entries[0].intersectionRatio
@@ -133,6 +172,9 @@ const index = () => {
             window.requestAnimationFrame(step)
         }
         window.requestAnimationFrame(step)
+    }
+    const onDateChange = (from: number, to: number) => {
+        setFilter({ ...filter, from, to })
     }
     const onSearch = (e: ChangeEvent<HTMLInputElement>, key: string) => {
         const text = e.currentTarget.value
@@ -226,11 +268,13 @@ const index = () => {
                     </div>
                     <div className={styles.fixed} >
                         <span> ชื่อกิจกรรม</span>
-                        <input onChange={e => onSearch(e, 'topic')} />
+                        <input onChange={e => onSearch(e, 'trainingTopic')} />
                     </div>
                     <div className={styles.fixed} >
                         <span> วันที่ออกใบประกาศ</span>
-                        <input onChange={e => onSearch(e, 'timestamp')} />
+                        <DatePicker onChange={(from: number, to: number) => onDateChange(from, to)} />
+                        {/* <input style={{width:'150px'}} type="date" id="birthday" name="birthday"/> */}
+                        {/* <input onChange={e => onSearch(e, 'timestamp')} /> */}
                     </div>
                     <div className={styles.fixed} >
                         <span>  Email</span>
@@ -251,7 +295,7 @@ const index = () => {
                         <div className={styles.fixed}><span>{item.firstName}</span></div>
                         <div className={styles.fixed}><span>{item.lastName}</span></div>
                         <div className={styles.fixed}><span>{item.trainingTopic}</span></div>
-                        <div className={styles.fixed}><span>{dayjs.unix(item.timestamp).format('DD MMM YYYY')}</span></div>
+                        <div className={styles.fixed}><span>{dayjs.unix(item.timestamp).locale('th').format('DD MMMM YYYY')}</span></div>
                         <div className={styles.fixed}><span>{item.email}</span></div>
                         <div className={styles.flexible}>
                             <Link href={'https://smartfactory.hcilab.net/certificates/sAldkwosdqqwdqwd'}>
