@@ -4,19 +4,22 @@ import Link from 'next/link'
 import axios from 'axios'
 import { useModal } from 'widgets/Modal'
 import { useIntersection, useSWRScroll } from 'hooks'
+import dayjs from 'dayjs'
 const easeOutQuint = (x: number): number => 1 - Math.pow(1 - x, 5)
 
 const Upload: FC<any> = ({ onSuccess }) => {
     const [text, setText] = useState('')
     const selectRef = useRef<HTMLSelectElement>()
     const fileRef = useRef<HTMLInputElement>()
+    const passwordRef = useRef<HTMLInputElement>()
 
     const onChange = async (e: ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files.length) return
         setText(e.currentTarget.files[0].name)
     }
     const onUpload = async (e: MouseEvent<HTMLButtonElement>) => {
-        const presignRes = await axios.get(`/api/getPresignedUrl?team=${selectRef.current.value}&ext=${fileRef.current.files[0].name.split('.')[1]}`)
+        const presignRes = await axios.get(`/api/getPresignedUrl?team=${selectRef.current.value}&key=${passwordRef.current.value}&ext=${fileRef.current.files[0].name.split('.')[1]}`)
+        if (!presignRes.data.url) return
         const config = {
             headers: {
                 "x-amz-acl": "public-read",
@@ -28,7 +31,8 @@ const Upload: FC<any> = ({ onSuccess }) => {
         }
         const uploadRes = await axios.put(presignRes.data.url, fileRef.current.files[0], config)
         fileRef.current.value = ''
-        console.log(uploadRes);
+        onSuccess(passwordRef.current.value, selectRef.current.value)
+        // console.log(uploadRes);
     }
     useEffect(() => {
         const team = localStorage.getItem('TEAM')
@@ -55,7 +59,7 @@ const Upload: FC<any> = ({ onSuccess }) => {
                     <option value='smartfactory'>Smart Factory</option>
                     <option value='3dtelepringting'>Tele-3D Printing</option>
                 </select>
-                <input name='password' type='password' placeholder='Password' />
+                <input ref={passwordRef} name='password' type='password' placeholder='Password' />
                 <button disabled={!text} onClick={onUpload}>
                     <i className="fas fa-upload"></i>
                     <span>อัพโหลด</span>
@@ -65,17 +69,43 @@ const Upload: FC<any> = ({ onSuccess }) => {
         </div>
     )
 }
+
+interface Filter {
+    firstName: string,
+    lastName: string,
+    email: string,
+    timestamp: string,
+    topic: string
+}
+const filterHandler = (filter: Filter, currentCourse: string, currentKey: string) => {
+    const data = Object.entries(filter)
+    const hasValue = data.filter(item => item[1])
+    const main = hasValue[0]
+    const optional = hasValue.slice(1)
+    const optionalStringQuery = optional.reduce((sum, cur) => sum += `${cur[0]}=${cur[1]}&`, '').slice(0, -1)
+    let path = `/api/${currentCourse}/${main[0]}/${main[1]}?key=${currentKey}`
+    if (optionalStringQuery) path += `&${optionalStringQuery}`
+    return path
+}
 const index = () => {
     const [ModalWrapper, modal, setModal] = useModal()
     const isScrolling = useRef<boolean>(false)
     const [isScroll, setIsScroll] = useState(false)
     const [isStart, setStart] = useState(false)
     const [error, setError] = useState(false)
+    const [filter, setFilter] = useState<Filter>({
+        firstName: '',
+        lastName: '',
+        email: '',
+        timestamp: '',
+        topic: ''
+    })
+    const [filterTimer, setFilterTimer] = useState<NodeJS.Timeout>()
     const [currentCourse, setCurrentCourse] = useState('')
     const [currentKey, setCurrentKey] = useState('')
     const selectRef = useRef<HTMLSelectElement>()
     const passwordRef = useRef<HTMLInputElement>()
-    const { swr: { data: rawData, size, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(isStart ? `/api/${currentCourse}?key=${currentKey}` : null)
+    const { swr: { data: rawData, size, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(currentKey ? (Object.values(filter).some(item => item) ? filterHandler(filter, currentCourse, currentKey) : `/api/${currentCourse}?key=${currentKey}`) : null)
     const data = useMemo(() => rawData && rawData.flatMap(item => item.data), [rawData])
     const [pageInterRef, contetnIntersecRef] = useIntersection(async (entries: IntersectionObserverEntry[]) => {
         const ratio = entries[0].intersectionRatio
@@ -104,11 +134,16 @@ const index = () => {
         }
         window.requestAnimationFrame(step)
     }
-
+    const onSearch = (e: ChangeEvent<HTMLInputElement>, key: string) => {
+        const text = e.currentTarget.value
+        clearTimeout(filterTimer)
+        setFilterTimer(setTimeout(() => {
+            setFilter({ ...filter, [key]: text })
+        }, 500))
+    }
     const onQuery = () => {
         const password = passwordRef.current.value
         const team = selectRef.current.value
-        setStart(true)
         setCurrentCourse(team)
         setCurrentKey(password)
         // mutate()
@@ -129,6 +164,12 @@ const index = () => {
         const value = e.currentTarget.value
         localStorage.setItem('TEAM', value)
     }
+    const onUploadSuccess = (password: string, team: string) => {
+        setModal({})
+        selectRef.current.value = team
+        passwordRef.current.value = password
+        onQuery()
+    }
     useEffect(() => {
         const team = localStorage.getItem('TEAM')
         selectRef.current.value = team
@@ -136,7 +177,7 @@ const index = () => {
     return (
         <div className={styles.page}>
             <ModalWrapper name='import'>
-                <Upload onSuccess={() => { }} />
+                <Upload onSuccess={onUploadSuccess} />
             </ModalWrapper>
             <div className={styles.header}>
                 <span>ข้อมูล Cerificate</span>
@@ -177,39 +218,40 @@ const index = () => {
                     <div className={styles.fixed} >#</div>
                     <div className={styles.fixed} >
                         <span>ชื่อ</span>
-                        <input />
+                        <input onChange={e => onSearch(e, 'firstName')} />
                     </div>
                     <div className={styles.fixed} >
                         <span>นามสกุล</span>
-                        <input />
+                        <input onChange={e => onSearch(e, 'lastName')} />
                     </div>
                     <div className={styles.fixed} >
                         <span> ชื่อกิจกรรม</span>
-                        <input />
+                        <input onChange={e => onSearch(e, 'topic')} />
                     </div>
                     <div className={styles.fixed} >
                         <span> วันที่ออกใบประกาศ</span>
-                        <input />
+                        <input onChange={e => onSearch(e, 'timestamp')} />
                     </div>
                     <div className={styles.fixed} >
                         <span>  Email</span>
-                        <input />
+                        <input onChange={e => onSearch(e, 'email')} />
                     </div>
                     <div className={styles.flexible} >
                         <span>  URL</span>
                         {/* <input /> */}
                     </div>
                 </div>
-                {!isStart && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กรุณาใส่รหัสผ่านเพื่อค้นหา</span>}
+                {!currentKey && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กรุณาใส่รหัสผ่านเพื่อค้นหา</span>}
                 {error && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>รหัสผ่านไม่ถูกต้อง</span>}
+                {!error && currentKey && !data?.length && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>ไม่พบรายการ</span>}
 
                 {data?.every(item => item) && data?.map((item, index) => (
                     <div key={index} className={styles.item}>
-                        <div className={styles.fixed}><span>{index + 1 * 10}</span></div>
+                        <div className={styles.fixed}><span>{index + 1}</span></div>
                         <div className={styles.fixed}><span>{item.firstName}</span></div>
                         <div className={styles.fixed}><span>{item.lastName}</span></div>
                         <div className={styles.fixed}><span>{item.trainingTopic}</span></div>
-                        <div className={styles.fixed}><span>48 Dec 2048</span></div>
+                        <div className={styles.fixed}><span>{dayjs.unix(item.timestamp).format('DD MMM YYYY')}</span></div>
                         <div className={styles.fixed}><span>{item.email}</span></div>
                         <div className={styles.flexible}>
                             <Link href={'https://smartfactory.hcilab.net/certificates/sAldkwosdqqwdqwd'}>
