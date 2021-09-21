@@ -192,7 +192,7 @@ const index = () => {
         }
         else setError(false)
         console.log(data);
-        
+
     }, [data])
     useEffect(() => {
         (async () => {
@@ -265,6 +265,7 @@ const index = () => {
     }
     useEffect(() => {
         const team = localStorage.getItem('TEAM')
+        if (!team) return
         selectRef.current.value = team
     }, [])
     return (
