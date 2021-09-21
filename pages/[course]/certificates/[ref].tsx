@@ -56,9 +56,9 @@ const TextLoader = ({ x, y, size, w, text }: TextLoader) => {
     )
     // <rect transform={`translate(${-w},${-h - 2})`} x="0" y="0" rx={h / 2} height={h} width={w} fill="#b2b2b2" />
 }
-
+const fetcher = (url: string) => axios.get(url).then(item => item.data.data)
 interface Ref { data: string[] }
-const Ref = ({ data }: Ref) => {
+const Ref = () => {
     // const data = useMemo(() => raw_data || [], [raw_data])
     const router = useRouter()
     const [zoom, setZoom] = useState<number>(1)
@@ -67,6 +67,11 @@ const Ref = ({ data }: Ref) => {
     const svgElement = useRef()
     const textRef = useRef<SVGTextElement>()
     const [isSave, setIsSave] = useState<boolean>(false)
+    const { data } = useSWR(router.query.ref ? `/api/certificate/${router.query.ref}` : null, fetcher)
+    console.log(data);
+    console.log(router.query.ref);
+
+
     // const { data } = useSWR('/api/test', (url) => axios.get(url).then(res => res.data.data), { fallbackData: [] })
     const save = async () => {
         // const cloneNode: HTMLDivElement = contentRef.current.cloneNode(true)
@@ -88,8 +93,8 @@ const Ref = ({ data }: Ref) => {
         const doc = new jsPDF({
             format: 'a4',
             orientation: 'landscape',
-            unit:'px',
-            compress:true
+            unit: 'px',
+            compress: true
         })
         const width = screen.width
         // console.log(width);
@@ -121,14 +126,14 @@ const Ref = ({ data }: Ref) => {
                 <div ref={contentRef} style={{ transform: `scale(${zoom})` }} className={`${styles.content} `}>
                     {/* <Template /> */}
                     <img src='/images/template.png' />
-                    <svg width='297mm' ref={svgElement} viewBox='0 0 841.89 595.28' fill="#231F20" >
-                        <text ref={textRef}  transform="translate(0 20)" fontSize={29} >สถาบันวิทยาการหุ่นยนต์ภาคสนาม</text>
-                        {/* <text x="612" y="148.75" style={{ fontSize: "29" }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</text>
+                    <svg ref={svgElement} viewBox='0 0 629 464' fill="#231F20" >
+                        <text x="612" y="110" ref={textRef} fontSize={29} >สถาบันวิทยาการหุ่นยนต์ภาคสนาม</text>
+                        <text x="612" y="148.75" style={{ fontSize: "29" }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</text>
                         <text x="612" y="189.30" style={{ fontSize: "23" }}>ขอมอบประกาศนียบัตรฉบับนี้เพื่อแสดงว่า</text>
-                        <TextLoader x={612} y={239.41} w={350} size={48} text={data[0]} />
-                        <TextLoader x={612} y={281.81} w={400} size={23} text={data[1]} />
-                        <TextLoader x={612} y={309.57} w={200} size={23} text={data[2]} />
-                        <text x="038" y="437.79" style={{ fontSize: "12", textAnchor: 'start', fontFamily: "TH Sarabun New" }}>{`Verify at smartfactory.hcilab.net/certificates/${router.query.ref}`}</text> */}
+                        <text x={612} y={239.41} fontSize={48}  >{`${data?.firstName || ''} ${data?.lastName || ''}`}</text>
+                        <text x={612} y={281.81} fontSize={23} >{data?.wording1}</text>
+                        <text x={612} y={309.57} fontSize={23} >{data?.wording2}</text>
+                        <text x="038" y="437.79" style={{ fontSize: "12", textAnchor: 'start', fontFamily: "TH Sarabun New" }}>{`Verify at smartfactory.hcilab.net/certificates/${router.query.ref}`}</text>
                     </svg>
                     {/* <span style={{ right: '3.7vh', top: '20.4vh', fontSize: '6.4vh' }}>สถาบันวิทยาการหุ่นยนต์ภาคสนาม</span>
                     <span style={{ right: '3.7vh', top: '28.1vh', fontSize: '6.4vh' }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</span>
@@ -146,19 +151,19 @@ const Ref = ({ data }: Ref) => {
 
 export default Ref
 
-import { GetServerSideProps } from 'next'
-export const getServerSideProps: GetServerSideProps = async (context) => {
-    const { course, ref } = context.params
-    const res = (await axios.get('https://jsonplaceholder.typicode.com/posts/1')).data
-    console.log(res);
+// import { GetServerSideProps } from 'next'
+// export const getServerSideProps: GetServerSideProps = async (context) => {
+//     const { course, ref } = context.params
+//     const res = (await axios.get('https://jsonplaceholder.typicode.com/posts/1')).data
+//     console.log(res);
 
-    return {
-        props: {
-            data: [
-                'ชื่อใจดี นามสกุลทุกคนก็ดีใจ',
-                'ได้สำเร็จการฝึกอบรมโครงการ......................................................................................',
-                'ให้ไว ณ วันที่ 00 ....................... พ.ศ. 0000',
-            ]
-        },
-    }
-}
+//     return {
+//         props: {
+//             data: [
+//                 'ชื่อใจดี นามสกุลทุกคนก็ดีใจ',
+//                 'ได้สำเร็จการฝึกอบรมโครงการ......................................................................................',
+//                 'ให้ไว ณ วันที่ 00 ....................... พ.ศ. 0000',
+//             ]
+//         },
+//     }
+// }

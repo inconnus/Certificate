@@ -1,5 +1,6 @@
 import React from 'react'
 import style from './Sidebar.module.sass'
+import Link from 'next/link'
 const SideBar = () => {
     return (
         <div className={style.sidebar}>
@@ -9,8 +10,12 @@ const SideBar = () => {
             </div>
             <ul>
                 <li>
-                    <i className="far fa-file-certificate" />
-                    <span>Certificate</span>
+                    <Link href='/'>
+                        <a>
+                            <i className="far fa-file-certificate" />
+                            <span>Certificate</span>
+                        </a>
+                    </Link>
                 </li>
             </ul>
         </div>

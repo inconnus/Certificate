@@ -58,9 +58,12 @@ const Upload: FC<any> = ({ onSuccess }) => {
         // notify.current.push('ad')
     }
     const onUpload = async (e: MouseEvent<HTMLButtonElement>) => {
-        // setLoading(true)
-        const presignRes = await axios.get(`/api/getPresignedUrl?team=${selectRef.current.value}&key=${passwordRef.current.value}&ext=${fileRef.current.files[0].name.split('.')[1]}`)
-        if (!presignRes.data.url) return  notify.current.push('รหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง','error')
+        setLoading(true)
+        const presignRes = await axios.get(`/api/getPresignedUrl?team=${selectRef.current.value}&key=${passwordRef.current.value}&ext=${fileRef.current.files[0].name.split('.').slice(-1)[0]}`)
+        if (!presignRes.data.url) {
+            setLoading(false)
+            return notify.current.push('รหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง', 'error')
+        }
         const docId = presignRes.data.docId
         console.log(presignRes.data);
 
@@ -74,18 +77,29 @@ const Upload: FC<any> = ({ onSuccess }) => {
             }
         }
         const uploadRes = await axios.put(presignRes.data.url, fileRef.current.files[0], config)
-        fileRef.current.value = ''
-
         const interval = setInterval(async () => {
             const status = await axios.get(`/api/doc/${docId}?key=${passwordRef.current.value}`)
-            console.log(status.data)
-        }, 1000)
-        // notify.current.open('ad')
-        setLoading(false)
-        return
+            if (status.data.status === 'SUCCESS') {
+                clearInterval(interval)
+                setLoading(false)
+                notify.current.push('อัพโหลดสำเร็จ!')
+                fileRef.current.value = ''
+                onSuccess(passwordRef.current.value, selectRef.current.value)
+            }
+            if (status.data.status === 'ERROR') {
+                clearInterval(interval)
+                setLoading(false)
+                notify.current.push('ข้อมูลไม่ถูกต้อง กรุณาลองอีกครั้ง', 'error')
+            }
 
-        onSuccess(passwordRef.current.value, selectRef.current.value)
-        console.log(uploadRes);
+            // console.log()
+        }, 500)
+        // notify.current.open('ad')
+
+        // return
+
+
+        // console.log(uploadRes);
     }
     useEffect(() => {
         const team = localStorage.getItem('TEAM')
@@ -146,6 +160,7 @@ const index = () => {
     const [isScroll, setIsScroll] = useState(false)
     const [isStart, setStart] = useState(false)
     const [error, setError] = useState(false)
+    const { loading: [loading, setLoading], notify } = useContext(AppContext)
     const [filter, setFilter] = useState<Filter>({
         firstName: '',
         lastName: '',
@@ -158,9 +173,10 @@ const index = () => {
     const [filterTimer, setFilterTimer] = useState<NodeJS.Timeout>()
     const [currentCourse, setCurrentCourse] = useState('')
     const [currentKey, setCurrentKey] = useState('')
+    const [isExport, setExport] = useState(false)
     const selectRef = useRef<HTMLSelectElement>()
     const passwordRef = useRef<HTMLInputElement>()
-    const { swr: { data: rawData, size, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(currentKey ? (filterHandler(filter, currentCourse, currentKey)) : null)
+    const { swr: { data: rawData, size, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(currentKey ? (filterHandler(filter, currentCourse, currentKey)) : null, { limit: 50 })
     const data = useMemo(() => rawData && rawData.flatMap(item => item.data), [rawData])
     const [pageInterRef, contetnIntersecRef] = useIntersection(async (entries: IntersectionObserverEntry[]) => {
         const ratio = entries[0].intersectionRatio
@@ -171,10 +187,24 @@ const index = () => {
         if (!data) return
         if (!data.every(item => item)) {
             setError(true)
-            console.log('error');
+            setStart(false)
+            // console.log('error');
         }
         else setError(false)
+        console.log(data);
+        
     }, [data])
+    useEffect(() => {
+        (async () => {
+            if (!isExport) return
+            if (isValidating) return
+            const res = await axios.post(`/api/export/${currentCourse}`, data)
+            location.href = res.data.path
+            setLoading(false)
+            setExport(false)
+            console.log(res.data);
+        })()
+    }, [isValidating, isExport])
     const scrollTop = () => {
         isScrolling.current = true
         const pos = pageInterRef.current.scrollTop
@@ -204,8 +234,10 @@ const index = () => {
         const team = selectRef.current.value
         setCurrentCourse(team)
         setCurrentKey(password)
-        // mutate()
-        console.log(password, team);
+        if (passwordRef.current.value === currentKey) return
+        setStart(true)
+        // console.log(location);
+
     }
     const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') onQuery()
@@ -214,19 +246,22 @@ const index = () => {
         setModal({ name: 'import' })
     }
     const onExport = async (e: MouseEvent<HTMLButtonElement>) => {
-        const res = await axios.post(`/api/export/${currentCourse}`, data)
-        location.href = res.data.path
-        console.log(res.data);
+        if (!data?.length) return notify.current.push('ไม่พบข้อมูล กรุณาลองอีกครั้ง', 'error')
+        setLoading(true)
+        setSize(9999)
+        setExport(true)
     }
     const onTeamChange = (e: ChangeEvent<HTMLSelectElement>) => {
         const value = e.currentTarget.value
+        setCurrentCourse(value)
+        pageInterRef.current.scrollTop = 0
         localStorage.setItem('TEAM', value)
     }
     const onUploadSuccess = (password: string, team: string) => {
         setModal({})
         selectRef.current.value = team
         passwordRef.current.value = password
-        // onQuery()
+        onQuery()
     }
     useEffect(() => {
         const team = localStorage.getItem('TEAM')
@@ -302,8 +337,8 @@ const index = () => {
                     </div>
                 </div>
                 {!currentKey && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กรุณาใส่รหัสผ่านเพื่อค้นหา</span>}
-                {error && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>รหัสผ่านไม่ถูกต้อง</span>}
-                {!error && currentKey && !data?.length && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>ไม่พบรายการ</span>}
+                {error && !isStart && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>รหัสผ่านไม่ถูกต้อง</span>}
+                {!error && currentKey && isStart && !data?.length && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>ไม่พบรายการ</span>}
 
                 {data?.every(item => item) && data?.map((item, index) => (
                     <div key={index} className={styles.item}>
@@ -314,13 +349,13 @@ const index = () => {
                         <div className={styles.fixed}><span>{dayjs.unix(item.timestamp).locale('th').format('DD MMMM YYYY')}</span></div>
                         <div className={styles.fixed}><span>{item.email}</span></div>
                         <div className={styles.flexible}>
-                            <Link href={'https://smartfactory.hcilab.net/certificates/sAldkwosdqqwdqwd'}>
-                                <a>{`https://smartfactory.hcilab.net/certificates/${item.code}`}</a>
+                            <Link href={`${location.href}${item.organizer}/certificates/${item.code}`}>
+                                <a target="_blank">{`${location.href}${item.organizer}/certificates/${item.code}`}</a>
                             </Link>
                         </div>
                     </div>
                 ))}
-                {isValidating && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กำลังค้นหา...</span>}
+                {isValidating && isStart && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กำลังค้นหา...</span>}
                 <div style={{ display: data && data?.every(item => item) ? 'flex' : 'none' }} className={styles.loader_item} ref={conRef} />
                 <div style={{ position: 'absolute', left: 0, height: '45px', top: '0' }} ref={contetnIntersecRef} />
             </div>
