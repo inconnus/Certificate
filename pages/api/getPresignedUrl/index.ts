@@ -42,5 +42,5 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(500).json(signed)
   }
   console.log('---> Here', signed)
-  return res.status(200).json({ url: signed.url })
+  return res.status(200).json({ docId: id, url: signed.url })
 }
