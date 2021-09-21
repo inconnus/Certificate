@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FormEvent, useEffect, MouseEvent, useRef, useState, FC, useMemo, KeyboardEvent } from 'react'
+import React, { ChangeEvent, FormEvent, useEffect, MouseEvent, useRef, useState, FC, useMemo, KeyboardEvent, useContext } from 'react'
 import styles from './index.module.sass'
 import Link from 'next/link'
 import axios from 'axios'
@@ -6,6 +6,7 @@ import { useModal } from 'widgets/Modal'
 import { useIntersection, useSWRScroll } from 'hooks'
 import dayjs from 'dayjs'
 import 'dayjs/locale/th'
+import AppContext from 'contexts/app'
 import DateRangePicker from 'react-bootstrap-daterangepicker';
 const easeOutQuint = (x: number): number => 1 - Math.pow(1 - x, 5)
 
@@ -49,14 +50,20 @@ const Upload: FC<any> = ({ onSuccess }) => {
     const selectRef = useRef<HTMLSelectElement>()
     const fileRef = useRef<HTMLInputElement>()
     const passwordRef = useRef<HTMLInputElement>()
+    const { loading: [loading, setLoading], notify } = useContext(AppContext)
 
     const onChange = async (e: ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files.length) return
         setText(e.currentTarget.files[0].name)
+        // notify.current.push('ad')
     }
     const onUpload = async (e: MouseEvent<HTMLButtonElement>) => {
+        // setLoading(true)
         const presignRes = await axios.get(`/api/getPresignedUrl?team=${selectRef.current.value}&key=${passwordRef.current.value}&ext=${fileRef.current.files[0].name.split('.')[1]}`)
-        if (!presignRes.data.url) return
+        if (!presignRes.data.url) return  notify.current.push('รหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง','error')
+        const docId = presignRes.data.docId
+        console.log(presignRes.data);
+
         const config = {
             headers: {
                 "x-amz-acl": "public-read",
@@ -68,8 +75,17 @@ const Upload: FC<any> = ({ onSuccess }) => {
         }
         const uploadRes = await axios.put(presignRes.data.url, fileRef.current.files[0], config)
         fileRef.current.value = ''
+
+        const interval = setInterval(async () => {
+            const status = await axios.get(`/api/doc/${docId}?key=${passwordRef.current.value}`)
+            console.log(status.data)
+        }, 1000)
+        // notify.current.open('ad')
+        setLoading(false)
+        return
+
         onSuccess(passwordRef.current.value, selectRef.current.value)
-        // console.log(uploadRes);
+        console.log(uploadRes);
     }
     useEffect(() => {
         const team = localStorage.getItem('TEAM')
@@ -210,7 +226,7 @@ const index = () => {
         setModal({})
         selectRef.current.value = team
         passwordRef.current.value = password
-        onQuery()
+        // onQuery()
     }
     useEffect(() => {
         const team = localStorage.getItem('TEAM')
