@@ -1,5 +1,6 @@
 
 module.exports = {
+  regions: ["sin1"],
   async rewrites() {
     return [
       {
