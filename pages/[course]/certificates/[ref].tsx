@@ -68,8 +68,8 @@ const Ref = () => {
     const textRef = useRef<SVGTextElement>()
     const [isSave, setIsSave] = useState<boolean>(false)
     const { data } = useSWR(router.query.ref ? `/api/certificate/${router.query.ref}` : null, fetcher)
-    console.log(data);
-    console.log(router.query.ref);
+    // console.log(data);
+    // console.log(router.query.ref);
 
 
     // const { data } = useSWR('/api/test', (url) => axios.get(url).then(res => res.data.data), { fallbackData: [] })
