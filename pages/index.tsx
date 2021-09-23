@@ -17,7 +17,6 @@ const DatePicker: FC<any> = ({ onChange }) => {
     const toRef = useRef(null)
     const onInputChange = (e: ChangeEvent<HTMLInputElement>, key: string) => {
         const value = e.currentTarget.value
-        console.log(key, fromRef.current.value);
 
         if (!fromRef.current.value || !toRef.current.value || dayjs(toRef.current.value).isBefore(dayjs(fromRef.current.value))) {
             toRef.current.value = value
@@ -27,7 +26,6 @@ const DatePicker: FC<any> = ({ onChange }) => {
         else setDateText({ from: dayjs(fromRef.current.value).format('DD/MM/YYYY'), to: dayjs(toRef.current.value).format('DD/MM/YYYY') })
         // setDateText({ ...dateText, [key]: dayjs(value).format('DD/MM/YYYY') })
         onChange(dayjs(fromRef.current.value).unix(), dayjs(toRef.current.value).unix())
-        console.log(dayjs(value).unix());
 
     }
     return (
@@ -50,6 +48,7 @@ const Upload: FC<any> = ({ onSuccess }) => {
     const selectRef = useRef<HTMLSelectElement>()
     const fileRef = useRef<HTMLInputElement>()
     const passwordRef = useRef<HTMLInputElement>()
+    const intervalRef = useRef<NodeJS.Timer>()
     const { loading: [loading, setLoading], notify } = useContext(AppContext)
 
     const onChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -65,29 +64,28 @@ const Upload: FC<any> = ({ onSuccess }) => {
             return notify.current.push('รหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง', 'error')
         }
         const docId = presignRes.data.docId
-        console.log(presignRes.data);
 
         const config = {
             headers: {
                 "x-amz-acl": "public-read",
                 "Content-Type": fileRef.current.files[0].type
             },
-            onUploadProgress: (event: any) => {
-                console.log(event);
-            }
+            // onUploadProgress: (event: any) => {
+            //     console.log(event);
+            // }
         }
         const uploadRes = await axios.put(presignRes.data.url, fileRef.current.files[0], config)
-        const interval = setInterval(async () => {
+        intervalRef.current = setInterval(async () => {
             const status = await axios.get(`/api/doc/${docId}?key=${passwordRef.current.value}`)
             if (status.data.status === 'SUCCESS') {
-                clearInterval(interval)
+                clearInterval(intervalRef.current)
                 setLoading(false)
                 notify.current.push('อัพโหลดสำเร็จ!')
                 fileRef.current.value = ''
                 onSuccess(passwordRef.current.value, selectRef.current.value)
             }
             if (status.data.status === 'ERROR') {
-                clearInterval(interval)
+                clearInterval(intervalRef.current)
                 setLoading(false)
                 notify.current.push('ข้อมูลไม่ถูกต้อง กรุณาลองอีกครั้ง', 'error')
             }
@@ -103,7 +101,7 @@ const Upload: FC<any> = ({ onSuccess }) => {
     }
     useEffect(() => {
         const team = localStorage.getItem('TEAM')
-        if(!team) return
+        if (!team) return
         selectRef.current.value = team
     }, [])
     return (
@@ -161,6 +159,7 @@ const index = () => {
     const [isScroll, setIsScroll] = useState(false)
     const [isStart, setStart] = useState(false)
     const [error, setError] = useState(false)
+    const [limit, setLimit] = useState(50)
     const { loading: [loading, setLoading], notify } = useContext(AppContext)
     const [filter, setFilter] = useState<Filter>({
         firstName: '',
@@ -177,7 +176,7 @@ const index = () => {
     const [isExport, setExport] = useState(false)
     const selectRef = useRef<HTMLSelectElement>()
     const passwordRef = useRef<HTMLInputElement>()
-    const { swr: { data: rawData, size, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(currentKey ? (filterHandler(filter, currentCourse, currentKey)) : null, { limit: 50 })
+    const { swr: { data: rawData, size, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(currentKey ? (filterHandler(filter, currentCourse, currentKey)) : null, { limit: limit })
     const data = useMemo(() => rawData && rawData.flatMap(item => item.data), [rawData])
     const [pageInterRef, contetnIntersecRef] = useIntersection(async (entries: IntersectionObserverEntry[]) => {
         const ratio = entries[0].intersectionRatio
@@ -192,20 +191,21 @@ const index = () => {
             // console.log('error');
         }
         else setError(false)
-        console.log(data);
+        // console.log(data);
 
     }, [data])
     useEffect(() => {
         (async () => {
-            if (!isExport) return
+            if (!isExport || !data?.length) return
             if (isValidating) return
             const res = await axios.post(`/api/export/${currentCourse}`, data)
             location.href = res.data.path
             setLoading(false)
             setExport(false)
-            console.log(res.data);
+            setLimit(50)
+            // console.log(res.data);
         })()
-    }, [isValidating, isExport])
+    }, [isValidating, isExport, data])
     const scrollTop = () => {
         isScrolling.current = true
         const pos = pageInterRef.current.scrollTop
@@ -247,10 +247,18 @@ const index = () => {
         setModal({ name: 'import' })
     }
     const onExport = async (e: MouseEvent<HTMLButtonElement>) => {
-        if (!data?.length) return notify.current.push('ไม่พบข้อมูล กรุณาลองอีกครั้ง', 'error')
+        if (!data?.every(item => item)) return notify.current.push('ไม่พบข้อมูล กรุณาลองอีกครั้ง', 'error')
         setLoading(true)
-        setSize(9999)
-        setExport(true)
+        const url = filterHandler(filter, currentCourse, currentKey)
+        const dataRes = await axios.get(url)
+        const res = await axios.post(`/api/export/${currentCourse}`, dataRes.data.data)
+        location.href = res.data.path
+        setLoading(false)
+
+        // setLoading(true)
+        // setLimit(9999)
+        // setSize(9999)
+        // setExport(true)
     }
     const onTeamChange = (e: ChangeEvent<HTMLSelectElement>) => {
         const value = e.currentTarget.value
