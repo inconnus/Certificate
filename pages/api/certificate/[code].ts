@@ -4,7 +4,7 @@ import { query } from "lib/DynamoDB"
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { code }: any = req.query
-  console.log(code);
+  // console.log(code);
   
   const cert = (await query({
     tableName: process.env.TABLE_NAME,
