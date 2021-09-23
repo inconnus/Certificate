@@ -3,8 +3,8 @@ import type { QUERY, QUERY_BETWEEN, QUERY_INDEX, QUERY_INDEX_BETWEEN, QUERY_INDE
 import { customAlphabet } from 'nanoid'
 
 AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_APP,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY_APP,
+  accessKeyId: process.env.XAWS_ACCESS_KEY_APP,
+  secretAccessKey: process.env.XAWS_SECRET_ACCESS_KEY_APP,
   region: 'ap-southeast-1'
 })
 
