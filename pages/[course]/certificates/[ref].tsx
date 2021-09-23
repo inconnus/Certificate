@@ -56,8 +56,9 @@ const TextLoader = ({ x, y, size, w, text }: TextLoader) => {
     )
     // <rect transform={`translate(${-w},${-h - 2})`} x="0" y="0" rx={h / 2} height={h} width={w} fill="#b2b2b2" />
 }
-const fetcher = (url: string) => axios.get(url).then(item => item.data.data)
 interface Ref { data: string[] }
+const fetcher = (url: string) => axios.get(url).then(item => item.data.data)
+const URL_MAPPTING = { '3dtelepringting': 'tele3dprinting.com', 'smartfactory': 'smartfactory.hcilab.net' }
 const Ref = () => {
     // const data = useMemo(() => raw_data || [], [raw_data])
     const router = useRouter()
@@ -67,6 +68,7 @@ const Ref = () => {
     const svgElement = useRef()
     const textRef = useRef<SVGTextElement>()
     const [isSave, setIsSave] = useState<boolean>(false)
+    const course: string = String(router.query.course)
     const { data } = useSWR(router.query.ref ? `/api/certificate/${router.query.ref}` : null, fetcher)
     // console.log(data);
     // console.log(router.query.ref);
@@ -114,6 +116,8 @@ const Ref = () => {
         await doc.html(contentRef.current)
         doc.save()
     }
+    console.log(router.query);
+
     return (
         <div className={styles.container}>
             <button className={styles.zoomin} onClick={() => setZoom(Math.min(zoom + 0.1, 1.5))}> <i className="fas fa-plus"></i></button>
@@ -125,7 +129,7 @@ const Ref = () => {
             <div ref={wrapRef} className={styles.content_wrap}>
                 <div ref={contentRef} style={{ transform: `scale(${zoom})` }} className={`${styles.content} `}>
                     {/* <Template /> */}
-                    <img src='/images/template.png' />
+                    <img className={styles.template} src={`/images/template/${router.query.course}.png`} />
                     <svg ref={svgElement} viewBox='0 0 629 464' fill="#231F20" >
                         <text x="612" y="110" ref={textRef} fontSize={29} >สถาบันวิทยาการหุ่นยนต์ภาคสนาม</text>
                         <text x="612" y="148.75" style={{ fontSize: "29" }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</text>
@@ -133,7 +137,7 @@ const Ref = () => {
                         <text x={612} y={239.41} fontSize={48}  >{`${data?.firstName || ''} ${data?.lastName || ''}`}</text>
                         <text x={612} y={281.81} fontSize={23} >{data?.wording1}</text>
                         <text x={612} y={309.57} fontSize={23} >{data?.wording2}</text>
-                        <text x="038" y="437.79" style={{ fontSize: "12", textAnchor: 'start', fontFamily: "TH Sarabun New" }}>{`Verify at smartfactory.hcilab.net/certificates/${router.query.ref}`}</text>
+                        <text x="038" y="437.79" style={{ fontSize: "12", textAnchor: 'start', fontFamily: "TH Sarabun New" }}>{`Verify at ${(URL_MAPPTING as any)[course]}/certificates/${router.query.ref}`}</text>
                     </svg>
                     {/* <span style={{ right: '3.7vh', top: '20.4vh', fontSize: '6.4vh' }}>สถาบันวิทยาการหุ่นยนต์ภาคสนาม</span>
                     <span style={{ right: '3.7vh', top: '28.1vh', fontSize: '6.4vh' }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</span>

@@ -103,6 +103,7 @@ const Upload: FC<any> = ({ onSuccess }) => {
     }
     useEffect(() => {
         const team = localStorage.getItem('TEAM')
+        if(!team) return
         selectRef.current.value = team
     }, [])
     return (
@@ -339,7 +340,7 @@ const index = () => {
                 </div>
                 {!currentKey && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กรุณาใส่รหัสผ่านเพื่อค้นหา</span>}
                 {error && !isStart && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>รหัสผ่านไม่ถูกต้อง</span>}
-                {!error && currentKey && isStart && !data?.length && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>ไม่พบรายการ</span>}
+                {!error && currentKey && isStart && !data && !isValidating && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>ไม่พบรายการ</span>}
 
                 {data?.every(item => item) && data?.map((item, index) => (
                     <div key={index} className={styles.item}>
