@@ -147,28 +147,28 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     }
   // }
 
-  if (filter_params.hasOwnProperty('email')){
-    console.log('---> case 3-email')
-    let filters = undefined
-    const { email, ...left_params } = filter_params
-    if (filter_params) filters = convertQueryParamsToFilters(left_params)
-    const found_matches = (await queryIndexSort({
-      tableName: process.env.TABLE_NAME,
-      indexName: process.env.INDEX_EMAIL,
-      pk: 'organizer',
-      pv: course,
-      sk: 'email',
-      sv: email.toLowerCase().trim(),
-      filters: filters,
-      limit: limit,
-      lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
-    })) ?? []
-    return res.status(200).json({
-      resCode: "200",
-      data: found_matches.data,
-      lastEvaluatedKey: JSON.stringify(found_matches.lastEvaluatedKey)
-    })
-  }
+  // if (filter_params.hasOwnProperty('email')){
+  //   console.log('---> case 3-email')
+  //   let filters = undefined
+  //   const { email, ...left_params } = filter_params
+  //   if (filter_params) filters = convertQueryParamsToFilters(left_params)
+  //   const found_matches = (await queryIndexSort({
+  //     tableName: process.env.TABLE_NAME,
+  //     indexName: process.env.INDEX_EMAIL,
+  //     pk: 'organizer',
+  //     pv: course,
+  //     sk: 'email',
+  //     sv: email.toLowerCase().trim(),
+  //     filters: filters,
+  //     limit: limit,
+  //     lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+  //   })) ?? []
+  //   return res.status(200).json({
+  //     resCode: "200",
+  //     data: found_matches.data,
+  //     lastEvaluatedKey: JSON.stringify(found_matches.lastEvaluatedKey)
+  //   })
+  // }
 
   console.log('---> case 4')
   const found_matches = (await queryIndex({
