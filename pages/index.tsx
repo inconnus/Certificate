@@ -75,25 +75,28 @@ const Upload: FC<any> = ({ onSuccess }) => {
             // }
         }
         const uploadRes = await axios.put(presignRes.data.url, fileRef.current.files[0], config)
-        intervalRef.current = setInterval(async () => {
+        // intervalRef.current = setInterval(async () => {
+        while (true) {
             const status = await axios.get(`/api/doc/${docId}?key=${passwordRef.current.value}`)
             if (status.data.status === 'SUCCESS') {
-                clearInterval(intervalRef.current)
+                // clearInterval(intervalRef.current)
                 setLoading(false)
                 notify.current.push('อัพโหลดสำเร็จ!')
                 fileRef.current.value = ''
                 onSuccess(passwordRef.current.value, selectRef.current.value)
+                break
             }
             if (status.data.status === 'ERROR') {
-                clearInterval(intervalRef.current)
+                // clearInterval(intervalRef.current)
                 setLoading(false)
-                console.log('push');
-                
+                // console.log('push');
                 notify.current.push('ข้อมูลไม่ถูกต้อง กรุณาลองอีกครั้ง', 'error')
+                break
             }
+        }
 
-            // console.log()
-        }, 500)
+        // console.log()
+        // }, 500)
         // notify.current.open('ad')
 
         // return
