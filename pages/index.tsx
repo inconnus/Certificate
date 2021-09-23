@@ -87,6 +87,8 @@ const Upload: FC<any> = ({ onSuccess }) => {
             if (status.data.status === 'ERROR') {
                 clearInterval(intervalRef.current)
                 setLoading(false)
+                console.log('push');
+                
                 notify.current.push('ข้อมูลไม่ถูกต้อง กรุณาลองอีกครั้ง', 'error')
             }
 
