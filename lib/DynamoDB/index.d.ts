@@ -1,5 +1,13 @@
 export type PROJECT_KEYS = Array<string>
 
+export type REMOVE_ITEM = {
+  tableName: string
+  pk: string
+  pv: string
+  sk?: string
+  sv?: any
+}
+
 export type QUERY = {
   tableName: string
   pk: string

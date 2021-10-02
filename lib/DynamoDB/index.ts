@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk'
-import type { QUERY, QUERY_BETWEEN, QUERY_INDEX, QUERY_INDEX_BETWEEN, QUERY_INDEX_SORT, QUERY_SORT } from './index.d'
 import { customAlphabet } from 'nanoid'
+import type { QUERY, QUERY_INDEX, QUERY_INDEX_BETWEEN, QUERY_INDEX_SORT, QUERY_SORT, REMOVE_ITEM } from './index.d'
 
 AWS.config.update({
   accessKeyId: process.env.XAWS_ACCESS_KEY_APP,
@@ -13,6 +13,25 @@ export const ddb: AWS.DynamoDB.Types = new AWS.DynamoDB()
 const client: AWS.DynamoDB.Types.DocumentClient = new AWS.DynamoDB.DocumentClient()
 
 const generateKeyProjection = (item: any) => (item ? item.reduce((sum: any, cur: any) => ({ ...sum, ['#' + nanoid()]: cur }), {}) : null)
+
+export const removeItem = async (fn: REMOVE_ITEM) => {
+  const params: AWS.DynamoDB.DocumentClient.UpdateItemInput = {
+    TableName: fn.tableName,
+    Key: {
+      [fn.pk]: fn.pv,
+      [fn.sk]: fn.sv
+    }
+  }
+  return new Promise(resolve => {
+    client.delete(params, (err, data) => {
+      if (err) {
+        console.log('error :', err)
+        resolve({ status: 400 })
+      }
+      else resolve({ status: 200 })
+    })
+  })
+}
 
 export const query = async (fn: QUERY) => {
   const expName: AWS.DynamoDB.ExpressionAttributeNameMap = generateKeyProjection(fn.project)
