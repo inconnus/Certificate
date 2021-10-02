@@ -58,13 +58,19 @@
     padding: 20px
     flex-direction: column
     .template
-        background: #f2741425
+        background: #0E324C
         margin-top: 15px
+        margin-bottom: 10px
         padding: 9px 15px
         font-size: 0.8em
         border-radius: 5px
+        align-items: center
+        i
+            color: #FFF
+            margin-right: 10px
+            font-size: 1.1em
         a
-            color: #F27314
+            color: #FFF
             text-decoration: none
 
     .upload
@@ -181,10 +187,37 @@
         span
             font-size: 1.4em
     .console
+        margin-top: 10px
         width: 100%
         padding: 7px 20px 15px 20px
         box-sizing: border-box
         justify-content: space-between
+        .tools
+            border-radius: 50px
+            border: 1px solid #ccc
+            padding: 8px 23px 8px 20px
+            height: 40px
+            align-items: center
+            background: #FFF
+            span
+                margin-top: -1px
+            .icon
+                cursor: pointer
+                width: 30px
+                height: 30px
+                flex-shrink: 0
+                cursor: pointer
+                padding: 8px
+                border-radius: 50%
+                align-items: center
+                justify-content: center
+                font-size: 0.8em
+                
+                &:active
+                    i
+                        transform: scale(0.98)
+                &:hover
+                    background: #eee
         form
             // width: 100%
             display: flex
@@ -246,33 +279,38 @@
         // border: 1px solid #eee
         // border-radius: 8px
         a
-            color: #F27314
+            color: #0e324c
             text-decoration: none
-        .flexible
-            flex: 1 1 350px
-            min-width: 120px
-            justify-content: flex-start
-            flex-direction: column
-            white-space: nowrap
-            flex-wrap: wrap
-            overflow: hidden
-            padding-left: 10px
+        
+
         .item
             width: 100%
-            padding: 10px 20px
+            // cursor: pointer
+            padding: 5px 20px
             background: #FFF
             font-size: 0.75em
             border-bottom: 1px solid #eee
+            align-items: center
             opacity: 0
             transform: translateY(10px)
             animation: init 0.5s forwards
+            // margin: 1px 0
             // flex-wrap: wrap
 
             input
+                width: 100%
                 // margin-left: -5px
                 // margin-top: 2px
+                
+            &:hover
+                // transform: scale(2.1)
+                box-shadow: 0 0 2px 1px #5555552a
+                z-index: 1
+                .icon
+                    visibility: visible
             &:first-child
                 // background: #F8F8F8 !important
+                // justify-content: flex-start
                 border-bottom: 1px solid #eee
                 box-shadow: 0 0 4px 1px #ddd
                 position: sticky
@@ -282,33 +320,89 @@
                 z-index: 1
                 opacity: 1
                 transform: none
-
+                align-items: flex-start
                 animation: none
+                button
+                    height: 100%
+                    padding: 4px 15px
+                    border: 1px solid #ddd
+                    border-radius: 50px
+                    background: #FFF
+                    cursor: pointer
+                    // &:active
+                    //     transform: scale(0.99)
                 input
                     font-weight: normal !important
+                // .fixed
+                //     justify-content: flex-start
             &:nth-child(odd)
                 // background: #F5F5FA
+        .btn_icon
+            padding: 8px
+            width: 30px
+            height: 30px
+            border-radius: 50%
+            cursor: pointer
+            &:active
+                i
+                    transform: scale(0.95)
+            &:hover
+                background: #eee
+        .icon
+            position: absolute
+            justify-content: center
+            align-items: center
+            width: 30px
+            height: 30px
+            flex-shrink: 0
+            cursor: pointer
+            right: 10px
+            visibility: hidden
+            align-items: center
+            padding: 8px
+            border-radius: 50%
+            &:active
+                i
+                    transform: scale(0.98)
+            &:hover
+                background: #eee
+            i
+                color: #767676
+        .flexible
+            flex: 1 1
+            min-width: 120px
+            justify-content: flex-start
+            flex-direction: column
+            white-space: nowrap
+            overflow: hidden
+            padding-left: 10px
+            margin-right: 10px
         .fixed
-            flex: 0 1 130px
-            min-width: 150px
+            // flex: 0 1 130px
+            // min-width: 150px
             margin-right: 10px
             flex-direction: column
-            justify-content: flex-start
+            justify-content: center
             align-items: flex-start
             white-space: nowrap
             overflow: hidden
             &:first-child
-                flex-basis: 40px
-                min-width: 40px
-            &:nth-child(2),&:nth-child(3)
-                flex-basis: 100px
+                flex-basis: 20px
+                min-width: 20px
+            &:nth-child(2)
+                flex-basis: 50px
                 min-width: 50px
-            &:nth-child(4)
+            &:nth-child(3) ,&:nth-child(4)
+                width: 120px
+                flex-basis: 120px
                 min-width: 100px
-                flex-basis: 150px
-            &:nth-child(5)
+            &:nth-child(5) //date
                 min-width: 195px
             // &:nth-child(4)
                 
             &:nth-child(6)
-                flex-basis: 230px
+                flex-basis: 130px
+                min-width: 120px
+            &:nth-child(7)
+                flex-basis: 200px
+                min-width: 200px
