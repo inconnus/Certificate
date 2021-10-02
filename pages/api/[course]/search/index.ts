@@ -73,7 +73,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         pk: 'organizer',
         pv: course,
         sk: 'email',
-        sv: text.toLowerCase().trim(),
+        sv: text.trim(),
         filters: [],
         limit: limit,
         lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
@@ -97,7 +97,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         pk: 'organizer',
         pv: course,
         sk: 'firstName',
-        sv: text.toLowerCase().trim(),
+        sv: text.trim(),
         filters: [],
         limit: limit,
         lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
@@ -121,7 +121,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         pk: 'organizer',
         pv: course,
         sk: 'lastName',
-        sv: text.toLowerCase().trim(),
+        sv: text.trim(),
         filters: [],
         limit: limit,
         lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
