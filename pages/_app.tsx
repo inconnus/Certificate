@@ -20,7 +20,7 @@ const App = ({ Component, pageProps }: AppProps) => {
       <Notify ref={notify} />
       <Loading ready={loading[0]} active={loading[0]} />
       <div id='overlay' />
-      <SideBar />
+      {/* <SideBar /> */}
       <Component {...pageProps} />
     </AppContext.Provider>
   )

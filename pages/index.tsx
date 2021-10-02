@@ -8,6 +8,9 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/th'
 import AppContext from 'contexts/app'
 import DateRangePicker from 'react-bootstrap-daterangepicker';
+import Checkbox from 'widgets/Checkbox'
+import { bool } from 'aws-sdk/clients/signer'
+import { mutate } from 'swr'
 const easeOutQuint = (x: number): number => 1 - Math.pow(1 - x, 5)
 
 
@@ -57,6 +60,8 @@ const Upload: FC<any> = ({ onSuccess }) => {
         // notify.current.push('ad')
     }
     const onUpload = async (e: MouseEvent<HTMLButtonElement>) => {
+        const file = fileRef.current.files[0]
+        if (!file) return notify.current.push('กรุณาเลือกไฟล์ก่อนอัพโหลด', 'error')
         setLoading(true)
         const presignRes = await axios.get(`/api/getPresignedUrl?team=${selectRef.current.value}&key=${passwordRef.current.value}&ext=${fileRef.current.files[0].name.split('.').slice(-1)[0]}`)
         if (!presignRes.data.url) {
@@ -68,13 +73,13 @@ const Upload: FC<any> = ({ onSuccess }) => {
         const config = {
             headers: {
                 "x-amz-acl": "public-read",
-                "Content-Type": fileRef.current.files[0].type
+                "Content-Type": file.type
             },
             // onUploadProgress: (event: any) => {
             //     console.log(event);
             // }
         }
-        const uploadRes = await axios.put(presignRes.data.url, fileRef.current.files[0], config)
+        const uploadRes = await axios.put(presignRes.data.url, file, config)
         // intervalRef.current = setInterval(async () => {
         while (true) {
             const status = await axios.get(`/api/doc/${docId}?key=${passwordRef.current.value}`)
@@ -112,6 +117,12 @@ const Upload: FC<any> = ({ onSuccess }) => {
     return (
         <div className={styles.import}>
             <span style={{ fontSize: '1.2em' }}>นำเข้ารายชื่อ</span>
+            <div className={styles.template}>
+                <i className="fas fa-download"></i>
+                <Link href='https://certificate-generator.s3.ap-southeast-1.amazonaws.com/template.xlsx'>
+                    <a>ดาวน์โหลด Template (*xlsx) สำหรับส่งรายชื่อเข้าสู่ระบบ</a>
+                </Link>
+            </div>
             <div className={styles.upload}>
                 <div style={{ alignItems: 'center' }}>
                     <label htmlFor='upload'>เลือกไฟล์</label>
@@ -120,18 +131,13 @@ const Upload: FC<any> = ({ onSuccess }) => {
                 </div>
                 <label>*.xls,*.xlsx</label>
             </div>
-            <div className={styles.template}>
-                <Link href='https://certificate-generator.s3.ap-southeast-1.amazonaws.com/template.xlsx'>
-                    <a>ไฟล์ Template (*xlsx) สำหรับส่งรายชื่อเข้าสู่ระบบ</a>
-                </Link>
-            </div>
             <div className={styles.confirm} style={{ flexShrink: 0, display: 'flex' }}>
                 <select ref={selectRef} name='team' >
                     <option value='smartfactory'>Smart Factory</option>
                     <option value='3dtelepringting'>Tele-3D Printing</option>
                 </select>
                 <input ref={passwordRef} name='password' type='password' placeholder='Password' />
-                <button disabled={!text} onClick={onUpload}>
+                <button onClick={onUpload}>
                     <i className="fas fa-upload"></i>
                     <span>อัพโหลด</span>
                 </button>
@@ -178,16 +184,20 @@ const index = () => {
     const [filterTimer, setFilterTimer] = useState<NodeJS.Timeout>()
     const [currentCourse, setCurrentCourse] = useState('')
     const [currentKey, setCurrentKey] = useState('')
+    const [checkbox, setCheckbox] = useState([])
     const [isExport, setExport] = useState(false)
     const selectRef = useRef<HTMLSelectElement>()
     const passwordRef = useRef<HTMLInputElement>()
-    const { swr: { data: rawData, size, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(currentKey ? (filterHandler(filter, currentCourse, currentKey)) : null, { limit: limit })
+    const formRef = useRef<HTMLFormElement>()
+    const { swr: { data: rawData, mutate, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(currentKey ? (filterHandler(filter, currentCourse, currentKey)) : null, { limit: limit })
     const data = useMemo(() => rawData && rawData.flatMap(item => item.data), [rawData])
     const [pageInterRef, contetnIntersecRef] = useIntersection(async (entries: IntersectionObserverEntry[]) => {
         const ratio = entries[0].intersectionRatio
         if (!ratio) setIsScroll(true)
         else setIsScroll(false)
     }, [])
+    console.log(rawData);
+
     useEffect(() => {
         if (!data) return
         if (!data.every(item => item)) {
@@ -240,6 +250,7 @@ const index = () => {
         const team = selectRef.current.value
         setCurrentCourse(team)
         setCurrentKey(password)
+        mutate()
         if (passwordRef.current.value === currentKey) return
         setStart(true)
         // console.log(location);
@@ -277,6 +288,44 @@ const index = () => {
         passwordRef.current.value = password
         onQuery()
     }
+    const onCheckbox = (value: boolean, code: string) => {
+        if (value) setCheckbox([...checkbox, code])
+        else setCheckbox(checkbox.filter(item => item !== code))
+    }
+    const onCheckAll = (value: boolean) => {
+        if (!data) return
+        if (value) setCheckbox(data.map(item => item.code))
+        else setCheckbox([])
+    }
+    const onRemove = async (code: string) => {
+        setLoading(true)
+        const res = await axios.post(`/api/${currentCourse}/remove?key=${currentKey}`, { codes: [code] })
+        console.log(res.data);
+        await mutate()
+        setLoading(false)
+        notify.current.push('ลบข้อมูลสำเร็จ!')
+
+
+    }
+    const onCopy = (url: string) => {
+        navigator.clipboard.writeText(url)
+        notify.current.push('คัดลอกลิงค์สำเร็จ!')
+    }
+    const onFilterClear = () => {
+        formRef.current.reset()
+        setFilter({
+            firstName: '',
+            lastName: '',
+            email: '',
+            timestamp: '',
+            trainingTopic: '',
+            from: null,
+            to: null
+        })
+    }
+    useEffect(() => {
+        console.log(checkbox);
+    }, [checkbox])
     useEffect(() => {
         const team = localStorage.getItem('TEAM')
         if (!team) return
@@ -292,15 +341,21 @@ const index = () => {
             </div>
             {/* <button onClick={onUpload}>dd</button> */}
             <div className={styles.console}>
-                <div style={{ flexShrink: 0 }}>
-                    <button onClick={onImport}>
-                        <i className="fas fa-file-import"></i>
-                        <span>นำเข้าไฟล์</span>
-                    </button>
+                <div style={{ flexShrink: 0, alignItems: 'center' }}>
+                    {checkbox.length > 0 && <div className={styles.tools}>
+                        <div title='ลบ' className={styles.icon}><i className="fas fa-trash"></i></div> <span> ({checkbox.length})</span>
+                    </div>}
 
                 </div>
                 {/* <form id='query'> */}
                 <div style={{ flexShrink: 0, display: 'flex' }}>
+                    {data?.length && <span style={{ flexShrink: 0, height: '100%', display: 'flex', alignItems: 'center', marginRight: '10px' }}>
+                        Total {data?.length} {data.slice(-1)[0].lastEvaluatedKey && '+'} data
+                    </span>}
+                    <button style={{ marginRight: '10px' }} onClick={onImport}>
+                        <i className="fas fa-file-import"></i>
+                        <span>นำเข้าไฟล์</span>
+                    </button>
                     <button style={{ background: '#0E324C', marginRight: '10px' }} onClick={onExport}>
                         <i className="fas fa-file-excel"></i>
                         <span>Download as Excel</span>
@@ -321,53 +376,64 @@ const index = () => {
 
             </div>
             <div ref={pageInterRef} className={styles.table_container}>
-
-                <div className={styles.item}>
-                    <div className={styles.fixed} >#</div>
-                    <div className={styles.fixed} >
-                        <span>ชื่อ</span>
-                        <input onChange={e => onSearch(e, 'firstName')} />
+                <form ref={formRef} onSubmit={e => e.preventDefault()}>
+                    <div className={styles.item}>
+                        <div style={{ paddingTop: '2px' }} className={styles.fixed} ><Checkbox icon={checkbox.length === data?.length ? 'all' : 'partial'} value={checkbox.length} onChange={onCheckAll} /></div>
+                        <div className={styles.fixed} >#</div>
+                        <div className={styles.fixed} >
+                            <span>ชื่อ</span>
+                            <input onChange={e => onSearch(e, 'firstName')} />
+                        </div>
+                        <div className={styles.fixed} >
+                            <span>นามสกุล</span>
+                            <input onChange={e => onSearch(e, 'lastName')} />
+                        </div>
+                        <div className={styles.flexible} >
+                            <span> ชื่อกิจกรรม</span>
+                        </div>
+                        <div className={styles.fixed} >
+                            <span> วันที่ออกใบประกาศ</span>
+                            <DatePicker onChange={(from: number, to: number) => onDateChange(from, to)} />
+                        </div>
+                        <div className={styles.fixed} >
+                            <span>Email</span>
+                            <input onChange={e => onSearch(e, 'email')} />
+                        </div>
+                        <div style={{ flex: '0 0 110px', minWidth: '110px' }} className={styles.fixed} >
+                            <span style={{ whiteSpace: 'pre-wrap' }}>{`   `}</span>
+                            <button onClick={onFilterClear}>Clear Filter</button>
+                        </div>
+                        {/* <div className={styles.fixed} >
+                    <span>  URL</span>
+                    </div> */}
                     </div>
-                    <div className={styles.fixed} >
-                        <span>นามสกุล</span>
-                        <input onChange={e => onSearch(e, 'lastName')} />
-                    </div>
-                    <div className={styles.fixed} >
-                        <span> ชื่อกิจกรรม</span>
-                        <input onChange={e => onSearch(e, 'trainingTopic')} />
-                    </div>
-                    <div className={styles.fixed} >
-                        <span> วันที่ออกใบประกาศ</span>
-                        <DatePicker onChange={(from: number, to: number) => onDateChange(from, to)} />
-                        {/* <input style={{width:'150px'}} type="date" id="birthday" name="birthday"/> */}
-                        {/* <input onChange={e => onSearch(e, 'timestamp')} /> */}
-                    </div>
-                    <div className={styles.fixed} >
-                        <span>  Email</span>
-                        <input onChange={e => onSearch(e, 'email')} />
-                    </div>
-                    <div className={styles.flexible} >
-                        <span>  URL</span>
-                        {/* <input /> */}
-                    </div>
-                </div>
+                </form>
                 {!currentKey && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กรุณาใส่รหัสผ่านเพื่อค้นหา</span>}
                 {error && !isStart && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>รหัสผ่านไม่ถูกต้อง</span>}
                 {!error && currentKey && isStart && !data && !isValidating && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>ไม่พบรายการ</span>}
 
                 {data?.every(item => item) && data?.map((item, index) => (
                     <div key={index} className={styles.item}>
-                        <div className={styles.fixed}><span>{index + 1}</span></div>
+                        <div className={styles.fixed}><Checkbox value={checkbox.includes(item.code)} onChange={(value: boolean) => onCheckbox(value, item.code)} /></div>
+                        <div className={styles.fixed}><span>{1000}</span></div>
                         <div className={styles.fixed}><span>{item.firstName}</span></div>
                         <div className={styles.fixed}><span>{item.lastName}</span></div>
-                        <div className={styles.fixed}><span>{item.trainingTopic}</span></div>
+                        <div className={styles.flexible}>
+                            <span title={`${item.text1.trim()}${item.text2.trim()}`}>{`${item.text1.trim()}${item.text2.trim()}`}</span>
+                        </div>
                         <div className={styles.fixed}><span>{dayjs.unix(item.timestamp).locale('th').format('DD MMMM YYYY')}</span></div>
                         <div className={styles.fixed}><span>{item.email}</span></div>
-                        <div className={styles.flexible}>
-                            <Link href={`${location.href}${item.organizer}/certificates/${item.code}`}>
-                                <a target="_blank">{`${location.href}${item.organizer}/certificates/${item.code}`}</a>
-                            </Link>
+                        <div style={{ flex: '0 0 110px', minWidth: '110px' }} className={styles.fixed}>
+                            <div>
+
+                                <Link href={`https://smartfactory.hcilab.net/certificates/${item.code}`}>
+
+                                    <a target="_blank"><div className={styles.btn_icon}><i style={{ marginRight: '10px' }} className="fas fa-external-link-alt"></i></div></a>
+                                </Link>
+                                <div title='คัดลอก' onClick={() => onCopy(`https://smartfactory.hcilab.net/certificates/${item.code}`)} className={styles.btn_icon}><i className="fas fa-copy"></i></div>
+                            </div>
                         </div>
+                        <div title='ลบ' onClick={() => onRemove(item.code)} className={styles.icon}><i className="fas fa-trash"></i></div>
                     </div>
                 ))}
                 {isValidating && isStart && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กำลังค้นหา...</span>}

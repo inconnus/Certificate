@@ -21,7 +21,7 @@ const Calendar: FC<CalendarProps> = ({ position, date, onArrow, onSelect, curren
     const isStart = useCallback((index: number) => dayjs(current[0]).isSame(date.date(index + 1), 'day') && !dayjs(current[1]).isSame(dayjs(current[0])), [current, date])
     const isEnd = useCallback((index: number) => dayjs(current[1]).isSame(date.date(index + 1), 'day') && !dayjs(current[1]).isSame(dayjs(current[0])), [current, date])
     const isStartOrEnd = useCallback((index: number) => {
-        if(!current.length) return
+        if (!current.length) return
         return dayjs(current[0]).isSame(date.date(index + 1), 'day') || dayjs(current[1]).isSame(date.date(index + 1), 'day') || dayjs(tempDate).isSame(date.date(index + 1), 'day')
     }, [current, date, tempDate])
 
@@ -45,7 +45,8 @@ const Calendar: FC<CalendarProps> = ({ position, date, onArrow, onSelect, curren
                 <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
             </div>
             <div className={styles.numbers}>
-                {[...Array(datePadding)].map((_, index) => <div key={index} className={`${styles.number} ${styles.padding}`} ><span>{dayjs(date).subtract(1, 'month').daysInMonth() - (datePadding - index - 1)}</span></div>)}
+                {[...Array(datePadding)].map((_, index) => <div key={index} className={`${styles.number} ${styles.padding}`} />)}
+                {/* <span>{dayjs(date).subtract(1, 'month').daysInMonth() - (datePadding - index - 1)}</span> */}
                 {[...Array(dayInMonth)].map((_, index) => (
                     <div
                         onClick={() => onSelect(dayjs(date).date(index + 1))} key={index}
@@ -60,7 +61,7 @@ const Calendar: FC<CalendarProps> = ({ position, date, onArrow, onSelect, curren
                         }>
                         <span>{index + 1}</span></div>
                 ))}
-                {[...Array(42 - dayInMonth - datePadding)].map((_, index) => <div key={index} className={`${styles.number} ${styles.padding}`} ><span>{index + 1}</span></div>)}
+                {/* {[...Array(42 - dayInMonth - datePadding)].map((_, index) => <div key={index} className={`${styles.number} ${styles.padding}`} ><span>{index + 1}</span></div>)} */}
             </div>
         </div>
     )
@@ -92,7 +93,7 @@ const Date = () => {
                 <Calendar tempDate={tempDate} setTempDate={setTempDate} onSelect={onDateSelect} current={currentRageDate} date={currentMonth.subtract(1, 'month')} onArrow={() => setDate(-1)} position='left' />
                 <Calendar tempDate={tempDate} setTempDate={setTempDate} onSelect={onDateSelect} current={currentRageDate} date={currentMonth} onArrow={() => setDate(1)} position='right' />
             </div>
-            <span>{rageDate[0]?.add(543,'year').format('DD-MM-YYYY')} - {rageDate[1]?.add(543,'year').format('DD-MM-YYYY')}</span>
+            <span>{rageDate[0]?.add(543, 'year').format('DD-MM-YYYY')} - {rageDate[1]?.add(543, 'year').format('DD-MM-YYYY')}</span>
 
 
         </div>
