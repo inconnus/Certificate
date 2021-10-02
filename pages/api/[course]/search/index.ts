@@ -48,8 +48,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       limit: limit,
       lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined,
       filters: filters
-    })).data ?? []
-    const arranged_data = sortData(found_matches)
+    })) ?? []
+    const arranged_data = sortData(found_matches.data)
     // console.log(`--- case 2 `, found_matches)
     return res.status(200).json({
       resCode: "200",
@@ -77,8 +77,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         filters: [],
         limit: limit,
         lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
-      })).data ?? []
-      const arranged_data = sortData(found_matches)
+      })) ?? []
+      const arranged_data = sortData(found_matches.data)
       return res.status(200).json({
         resCode: "200",
         data: arranged_data,
@@ -101,8 +101,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         filters: [],
         limit: limit,
         lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
-      })).data ?? []
-      const arranged_data = sortData(found_matches)
+      })) ?? []
+      const arranged_data = sortData(found_matches.data)
       return res.status(200).json({
         resCode: "200",
         data: arranged_data,
@@ -125,8 +125,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         filters: [],
         limit: limit,
         lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
-      })).data ?? []
-      const arranged_data = sortData(found_matches)
+      })) ?? []
+      const arranged_data = sortData(found_matches.data)
       return res.status(200).json({
         resCode: "200",
         data: arranged_data,
@@ -146,8 +146,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     limit: limit,
     filters: filters,
     lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
-  })).data ?? []
-  const arranged_data = sortData(found_matches)
+  })) ?? []
+  console.log({ found_matches })
+  const arranged_data = sortData(found_matches.data)
 
   return res.status(200).json({
     resCode: "200",
