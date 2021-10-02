@@ -17,10 +17,10 @@ const sortData = (found_matches: any[]) => {
   let arranged_data: any[] = []
   dates.map(timestamp => {
     const sorted = group_by_date[timestamp].sort((a: any, b: any) => a.firstName.localeCompare(b.firstName, 'th', { sensitivity: 'base' }))
-    console.log({ sorted })
+    // console.log({ sorted })
     arranged_data = [...arranged_data, ...sorted]
   })
-  console.log({ arranged_data })
+  // console.log({ arranged_data })
   return arranged_data
 }
 
