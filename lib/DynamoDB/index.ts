@@ -106,7 +106,7 @@ export const queryIndex = async (fn: QUERY_INDEX) => {
   let params: AWS.DynamoDB.DocumentClient.QueryInput = {
     TableName: fn.tableName,
     IndexName: fn.indexName,
-    ScanIndexForward: false,
+    ScanIndexForward: true,
     KeyConditionExpression: "#ID = :ID",
     ExpressionAttributeNames: {
       "#ID": fn.pk,
