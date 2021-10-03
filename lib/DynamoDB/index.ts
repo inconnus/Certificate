@@ -150,7 +150,7 @@ export const queryIndexBetween = async (fn: QUERY_INDEX_BETWEEN) => {
   let params: AWS.DynamoDB.DocumentClient.QueryInput = {
     TableName: fn.tableName,
     IndexName: fn.indexName,
-    ScanIndexForward: false,
+    ScanIndexForward: true,
     KeyConditionExpression: "#ID = :ID and #SK between :BGW and :END",
     ExpressionAttributeNames: {
       "#ID": fn.pk,

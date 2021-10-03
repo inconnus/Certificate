@@ -44,33 +44,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   let filters = undefined
   if (filter_params) filters = convertQueryParamsToFilters(filter_params)
 
-  if (filter_params.hasOwnProperty('from') && filter_params.hasOwnProperty('to')) {
-    console.log('---> case 2-from&to')
-    let filters = undefined
-    const { from, to, ...left_params } = filter_params
-    if (filter_params) filters = convertQueryParamsToFilters(left_params)
-    const found_matches = (await queryIndexBetween({
-      tableName: process.env.TABLE_NAME,
-      indexName: process.env.INDEX_TIMESTAMP,
-      pk: 'organizer',
-      pv: course,
-      sk: 'timestamp',
-      start: Number(from),
-      end: Number(to),
-      // limit: limit,
-      lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined,
-      filters: filters
-    })) ?? []
-    const arranged_data = sortData(found_matches.data)
-    // console.log(`--- case 2 `, found_matches)
-    return res.status(200).json({
-      resCode: "200",
-      data: arranged_data,
-      lastEvaluatedKey: JSON.stringify(found_matches.lastEvaluatedKey)
-    })
-  }
-
   const keys = Object.keys(filter_params)
+  console.log({ keys })
   if (keys.length == 1) {
     const __key = keys[0]
     switch (__key) {
@@ -85,7 +60,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           pk: 'email',
           pv: text.trim(),
           filters: [['organizer', course]],
-          // limit: limit,
+          limit: limit,
           lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
         })) ?? []
         const arranged_data = sortData(found_matches.data)
@@ -107,7 +82,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           pk: 'firstName',
           pv: text.trim(),
           filters: [['organizer', course]],
-          // limit: limit,
+          limit: limit,
           lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
         })) ?? []
         const arranged_data = sortData(found_matches.data)
@@ -129,7 +104,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           pk: 'lastName',
           pv: text.trim(),
           filters: [['organizer', course]],
-          // limit: limit,
+          limit: limit,
           lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
         })) ?? []
         const arranged_data = sortData(found_matches.data)
@@ -143,24 +118,127 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         break
     }
   }
+  else if (keys.length === 2) {
+    if (keys.includes('firstName') && keys.includes('lastName')) {
+      const { firstName, lastName } = filter_params
+      console.log('---> case 5-firstName-lastName')
+      const found_matches = (await queryIndex({
+        tableName: process.env.TABLE_NAME,
+        indexName: 'ByFirstNameLastName',
+        pk: 'organizerFirstNameLastName',
+        pv: `${course}#${firstName}#${lastName}`,
+        filters: [],
+        limit: limit,
+        lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+      })) ?? []
+      const arranged_data = sortData(found_matches.data)
+      return res.status(200).json({
+        resCode: "200",
+        data: arranged_data,
+        lastEvaluatedKey: JSON.stringify(found_matches.lastEvaluatedKey)
+      })
+    }
+    else if (keys.includes('firstName') && keys.includes('email')) {
+      const { firstName, email } = filter_params
+      console.log('---> case 5-firstName-email')
+      const found_matches = (await queryIndex({
+        tableName: process.env.TABLE_NAME,
+        indexName: 'ByFirstNameEmail',
+        pk: 'organizerFirstNameEmail',
+        pv: `${course}#${firstName}#${email}`,
+        filters: [],
+        limit: limit,
+        lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+      })) ?? []
+      const arranged_data = sortData(found_matches.data)
+      return res.status(200).json({
+        resCode: "200",
+        data: arranged_data,
+        lastEvaluatedKey: JSON.stringify(found_matches.lastEvaluatedKey)
+      })
+    }
+    else if (keys.includes('lastName') && keys.includes('email')) {
+      const { lastName, email } = filter_params
+      console.log('---> case 5-lastName-email')
+      const found_matches = (await queryIndex({
+        tableName: process.env.TABLE_NAME,
+        indexName: 'ByLastNameEmail',
+        pk: 'organizerLastNameEmail',
+        pv: `${course}#${lastName}#${email}`,
+        filters: [],
+        limit: limit,
+        lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+      })) ?? []
+      const arranged_data = sortData(found_matches.data)
+      return res.status(200).json({
+        resCode: "200",
+        data: arranged_data,
+        lastEvaluatedKey: JSON.stringify(found_matches.lastEvaluatedKey)
+      })
+    }
 
-  console.log('---> case 4')
-  const found_matches = (await queryIndex({
-    tableName: process.env.TABLE_NAME,
-    indexName: process.env.INDEX_ORGANIZER_BY_TIMESTAMP,
-    pk: 'organizer',
-    pv: course,
-    // limit: limit,
-    filters: filters,
-    lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
-  })) ?? []
-  console.log({ found_matches })
-  const arranged_data = sortData(found_matches.data)
+  }
+  else if (keys.length === 3) {
+    const { firstName, lastName, email } = filter_params
+      console.log('---> case 5-firstName-lastName-email')
+      const found_matches = (await queryIndex({
+        tableName: process.env.TABLE_NAME,
+        indexName: 'ByFirstNameLastNameEmail',
+        pk: 'organizerFirstNameLastNameEmail',
+        pv: `${course}#${firstName}#${lastName}#${email}`,
+        filters: [],
+        limit: limit,
+        lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+      })) ?? []
+      const arranged_data = sortData(found_matches.data)
+      return res.status(200).json({
+        resCode: "200",
+        data: arranged_data,
+        lastEvaluatedKey: JSON.stringify(found_matches.lastEvaluatedKey)
+      })
+  }
+  else if (keys.length === 5) {
+    const { firstName, lastName, email, from, to } = filter_params
+      console.log('---> case all filter')
+      const found_matches = (await queryIndexBetween({
+        tableName: process.env.TABLE_NAME,
+        indexName: 'ByFirstNameLastNameEmail',
+        pk: 'organizerFirstNameLastNameEmail',
+        pv: `${course}#${firstName}#${lastName}#${email}`,
+        sk: 'timestamp',
+        start: Number(from),
+        end: Number(to),
+        filters: [],
+        limit: limit,
+        lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+      })) ?? []
+      const arranged_data = sortData(found_matches.data)
+      return res.status(200).json({
+        resCode: "200",
+        data: arranged_data,
+        lastEvaluatedKey: JSON.stringify(found_matches.lastEvaluatedKey)
+      })
+  }
+  else{
+    console.log('---> case 4')
+    const found_matches = (await queryIndex({
+      tableName: process.env.TABLE_NAME,
+      indexName: process.env.INDEX_ORGANIZER_BY_TIMESTAMP,
+      pk: 'organizer',
+      pv: course,
+      limit: limit,
+      filters: filters,
+      lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+    })) ?? []
+    // console.log({ found_matches })
+    const arranged_data = sortData(found_matches.data)
+  
+    return res.status(200).json({
+      resCode: "200",
+      data: arranged_data,
+      lastEvaluatedKey: JSON.stringify(found_matches.lastEvaluatedKey)
+    })
+  }
 
-  return res.status(200).json({
-    resCode: "200",
-    data: arranged_data,
-    lastEvaluatedKey: JSON.stringify(found_matches.lastEvaluatedKey)
-  })
 }
 
