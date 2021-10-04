@@ -167,19 +167,124 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       break
     }
     case 3: {
-      const { firstName, lastName, email } = filter_params
-      console.log('---> case 3-firstName-lastName-email')
-      found_matches = (await queryIndex({
-        tableName: process.env.TABLE_NAME,
-        indexName: 'ByFirstNameLastNameEmail',
-        pk: 'organizerFirstNameLastNameEmail',
-        pv: `${course}#${firstName}#${lastName}#${email}`,
-        filters: [],
-        // limit: limit,
-        lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
-      })) ?? []
+      if (keys.includes('from') && keys.includes('to')) {
+        let { from, to } = filter_params
+        to = dayjs(Number(to)).hour(23).minute(59).valueOf()
+        console.log(`---> case 3-from-to-something : ${from} - ${to}`)
+
+        if (keys.includes('firstName'))
+          found_matches = (await queryIndexBetween({
+            tableName: process.env.TABLE_NAME,
+            indexName: 'ByFirstName2',
+            pk: 'firstName',
+            pv: filter_params.firstName,
+            sk: 'timestamp',
+            start: Number(from),
+            end: Number(to),
+            filters: [],
+            // limit: limit,
+            lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+          })) ?? []
+        else if (keys.includes('lastName'))
+          found_matches = (await queryIndexBetween({
+            tableName: process.env.TABLE_NAME,
+            indexName: 'ByLastName2',
+            pk: 'lastName',
+            pv: filter_params.lastName,
+            sk: 'timestamp',
+            start: Number(from),
+            end: Number(to),
+            filters: [],
+            // limit: limit,
+            lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+          })) ?? []
+        else if (keys.includes('email'))
+          found_matches = (await queryIndexBetween({
+            tableName: process.env.TABLE_NAME,
+            indexName: 'ByEmail2',
+            pk: 'email',
+            pv: filter_params.email,
+            sk: 'timestamp',
+            start: Number(from),
+            end: Number(to),
+            filters: [],
+            // limit: limit,
+            lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+          })) ?? []
+        break
+      }
+      else {
+        const { firstName, lastName, email } = filter_params
+        console.log('---> case 3-firstName-lastName-email')
+        found_matches = (await queryIndex({
+          tableName: process.env.TABLE_NAME,
+          indexName: 'ByFirstNameLastNameEmail',
+          pk: 'organizerFirstNameLastNameEmail',
+          pv: `${course}#${firstName}#${lastName}#${email}`,
+          filters: [],
+          // limit: limit,
+          lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+        })) ?? []
+        break
+      }
+    }
+    case 4: {
+      // if (keys.includes('from') && keys.includes('to')) {
+      let { from, to } = filter_params
+      to = dayjs(Number(to)).hour(23).minute(59).valueOf()
+
+      if (keys.includes('firstName') && keys.includes('lastName')) {
+        const { firstName, lastName } = filter_params
+        console.log('---> case 4-timestamp-firstName-lastName')
+        found_matches = (await queryIndexBetween({
+          tableName: process.env.TABLE_NAME,
+          indexName: 'ByFirstNameLastName',
+          pk: 'organizerFirstNameLastName',
+          pv: `${course}#${firstName}#${lastName}`,
+          sk: 'timestamp',
+          start: Number(from),
+          end: Number(to),
+          filters: [],
+          // limit: limit,
+          lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+        })) ?? []
+      }
+      else if (keys.includes('firstName') && keys.includes('email')) {
+        const { firstName, email } = filter_params
+        console.log('---> case 4-timestamp-firstName-email')
+        found_matches = (await queryIndexBetween({
+          tableName: process.env.TABLE_NAME,
+          indexName: 'ByFirstNameEmail',
+          pk: 'organizerFirstNameEmail',
+          pv: `${course}#${firstName}#${email}`,
+          sk: 'timestamp',
+          start: Number(from),
+          end: Number(to),
+          filters: [],
+          // limit: limit,
+          lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+        })) ?? []
+      }
+      else if (keys.includes('lastName') && keys.includes('email')) {
+        const { lastName, email } = filter_params
+        console.log('---> case 4-timestamp-lastName-email')
+        found_matches = (await queryIndexBetween({
+          tableName: process.env.TABLE_NAME,
+          indexName: 'ByLastNameEmail',
+          pk: 'organizerLastNameEmail',
+          pv: `${course}#${lastName}#${email}`,
+          sk: 'timestamp',
+          start: Number(from),
+          end: Number(to),
+          filters: [],
+          // limit: limit,
+          lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+        })) ?? []
+      }
+      // }
       break
     }
+
     case 5: {
       let { firstName, lastName, email, from, to } = filter_params
       to = dayjs(Number(to)).hour(23).minute(59).valueOf()
