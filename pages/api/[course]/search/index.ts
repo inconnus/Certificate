@@ -1,6 +1,7 @@
 process.env.TZ = "Asia/Bangkok"
+import dayjs from "dayjs"
+import { queryIndex, queryIndexBetween } from "lib/DynamoDB"
 import { NextApiRequest, NextApiResponse } from "next"
-import { queryIndex, queryIndexBetween, queryIndexSort } from "lib/DynamoDB"
 import { accessKeyChecking, convertQueryParamsToFilters } from "utils"
 
 const groupBy = (arr: any[], property: string) => {
@@ -108,8 +109,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     }
     case 2: {
       if (keys.includes('from') && keys.includes('to')) {
-        const { from, to } = filter_params
-        console.log('---> case 2-from-to')
+        let { from, to } = filter_params
+        to = dayjs(Number(to)).hour(23).minute(59).valueOf()
+        console.log(`---> case 2-from-to : ${from} - ${to}`)
         found_matches = (await queryIndexBetween({
           tableName: process.env.TABLE_NAME,
           indexName: 'OrganizerByTimestamp',
@@ -179,7 +181,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       break
     }
     case 5: {
-      const { firstName, lastName, email, from, to } = filter_params
+      let { firstName, lastName, email, from, to } = filter_params
+      to = dayjs(Number(to)).hour(23).minute(59).valueOf()
       console.log('---> case 5-all filter')
       found_matches = (await queryIndexBetween({
         tableName: process.env.TABLE_NAME,
@@ -200,7 +203,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       console.log('---> case default')
       found_matches = (await queryIndex({
         tableName: process.env.TABLE_NAME,
-        indexName: process.env.INDEX_ORGANIZER_BY_TIMESTAMP,
+        indexName: 'OrganizerByTimestamp',
         pk: 'organizer',
         pv: course,
         // limit: limit,
