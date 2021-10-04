@@ -62,7 +62,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
             pk: 'email',
             pv: text.trim(),
             filters: [['organizer', course]],
-            limit: limit,
+            // limit: limit,
             lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
           })) ?? []
           break
@@ -79,7 +79,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
             pk: 'firstName',
             pv: text.trim(),
             filters: [['organizer', course]],
-            limit: limit,
+            // limit: limit,
             lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
           })) ?? []
           break
@@ -96,7 +96,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
             pk: 'lastName',
             pv: text.trim(),
             filters: [['organizer', course]],
-            limit: limit,
+            // limit: limit,
             lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
           })) ?? []
           break
@@ -107,7 +107,23 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       break
     }
     case 2: {
-      if (keys.includes('firstName') && keys.includes('lastName')) {
+      if (keys.includes('from') && keys.includes('to')) {
+        const { from, to } = filter_params
+        console.log('---> case 2-from-to')
+        found_matches = (await queryIndexBetween({
+          tableName: process.env.TABLE_NAME,
+          indexName: 'OrganizerByTimestamp',
+          pk: 'organizer',
+          pv: course,
+          sk: 'timestamp',
+          start: Number(from),
+          end: Number(to),
+          filters: [],
+          // limit: limit,
+          lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
+        })) ?? []
+      }
+      else if (keys.includes('firstName') && keys.includes('lastName')) {
         const { firstName, lastName } = filter_params
         console.log('---> case 2-firstName-lastName')
         found_matches = (await queryIndex({
@@ -116,7 +132,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           pk: 'organizerFirstNameLastName',
           pv: `${course}#${firstName}#${lastName}`,
           filters: [],
-          limit: limit,
+          // limit: limit,
           lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
         })) ?? []
       }
@@ -129,7 +145,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           pk: 'organizerFirstNameEmail',
           pv: `${course}#${firstName}#${email}`,
           filters: [],
-          limit: limit,
+          // limit: limit,
           lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
         })) ?? []
       }
@@ -142,7 +158,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           pk: 'organizerLastNameEmail',
           pv: `${course}#${lastName}#${email}`,
           filters: [],
-          limit: limit,
+          // limit: limit,
           lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
         })) ?? []
       }
@@ -157,7 +173,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         pk: 'organizerFirstNameLastNameEmail',
         pv: `${course}#${firstName}#${lastName}#${email}`,
         filters: [],
-        limit: limit,
+        // limit: limit,
         lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
       })) ?? []
       break
@@ -174,7 +190,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         start: Number(from),
         end: Number(to),
         filters: [],
-        limit: limit,
+        // limit: limit,
         lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
       })) ?? []
       break
@@ -187,7 +203,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         indexName: process.env.INDEX_ORGANIZER_BY_TIMESTAMP,
         pk: 'organizer',
         pv: course,
-        limit: limit,
+        // limit: limit,
         filters: filters,
         lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
       })) ?? []
