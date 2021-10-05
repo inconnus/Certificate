@@ -85,7 +85,6 @@ const DateRange = ({ onChange, defaultValue = [] }) => {
         }
     }
     useEffect(() => {
-        // if()
         if (currentRageDate.every(item => item)) {
             setRageDate(currentRageDate)
             if (onChange) onChange(currentRageDate)
