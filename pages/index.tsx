@@ -184,7 +184,7 @@ const Upload: FC<any> = ({ onSuccess }) => {
                 <div style={{ alignItems: 'center' ,overflow:'hidden'}}>
                     <label htmlFor='upload'>เลือกไฟล์</label>
                     <input ref={fileRef} id='upload' onChange={onChange} type='file' accept='.xlsx,.xls' />
-                    <span style={{whiteSpace:'normal',overflow:'hidden',textOverflow:'ellipsis'}}>{text ? text : 'ไม่ได้เลือกไฟล์'}</span>
+                    <span style={{whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{text ? text : 'ไม่ได้เลือกไฟล์'}</span>
                 </div>
                 <label>*.xls,*.xlsx</label>
             </div>
