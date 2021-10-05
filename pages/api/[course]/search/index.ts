@@ -1,4 +1,5 @@
 process.env.TZ = "Asia/Bangkok"
+
 import dayjs from "dayjs"
 import { queryIndex, queryIndexBetween } from "lib/DynamoDB"
 import { NextApiRequest, NextApiResponse } from "next"
@@ -47,7 +48,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
   const keys = Object.keys(filter_params)
   let found_matches: any
-  console.log({ keys })
   switch (keys.length) {
     case 1: {
       const __key = keys[0]
@@ -110,7 +110,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     case 2: {
       if (keys.includes('from') && keys.includes('to')) {
         let { from, to } = filter_params
-        to = dayjs(Number(to)).hour(23).minute(59).valueOf()
+        from = Math.round(dayjs(Number(from * 1000)).hour(0).minute(0).second(0).millisecond(0).valueOf() / 1000)
+        to = Math.round(dayjs(Number(from * 1000)).hour(23).minute(59).valueOf() / 1000)
         console.log(`---> case 2-from-to : ${from} - ${to}`)
         found_matches = (await queryIndexBetween({
           tableName: process.env.TABLE_NAME,
@@ -119,7 +120,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
           pv: course,
           sk: 'timestamp',
           start: Number(from),
-          end: Number(to),
+          end: to,
           filters: [],
           // limit: limit,
           lastEvaluatedKey: lastEvaluatedKey ? JSON.parse(lastEvaluatedKey) : undefined
@@ -169,7 +170,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     case 3: {
       if (keys.includes('from') && keys.includes('to')) {
         let { from, to } = filter_params
-        to = dayjs(Number(to)).hour(23).minute(59).valueOf()
+        from = Math.round(dayjs(Number(from * 1000)).hour(0).minute(0).second(0).millisecond(0).valueOf() / 1000)
+        to = Math.round(dayjs(Number(from * 1000)).hour(23).minute(59).valueOf() / 1000)
         console.log(`---> case 3-from-to-something : ${from} - ${to}`)
 
         if (keys.includes('firstName'))
@@ -231,7 +233,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     case 4: {
       // if (keys.includes('from') && keys.includes('to')) {
       let { from, to } = filter_params
-      to = dayjs(Number(to)).hour(23).minute(59).valueOf()
+      from = Math.round(dayjs(Number(from * 1000)).hour(0).minute(0).second(0).millisecond(0).valueOf() / 1000)
+      to = Math.round(dayjs(Number(from * 1000)).hour(23).minute(59).valueOf() / 1000)
 
       if (keys.includes('firstName') && keys.includes('lastName')) {
         const { firstName, lastName } = filter_params
@@ -287,7 +290,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
     case 5: {
       let { firstName, lastName, email, from, to } = filter_params
-      to = dayjs(Number(to)).hour(23).minute(59).valueOf()
+      from = Math.round(dayjs(Number(from * 1000)).hour(0).minute(0).second(0).millisecond(0).valueOf() / 1000)
+      to = Math.round(dayjs(Number(from * 1000)).hour(23).minute(59).valueOf() / 1000)
       console.log('---> case 5-all filter')
       found_matches = (await queryIndexBetween({
         tableName: process.env.TABLE_NAME,
