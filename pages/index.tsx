@@ -525,7 +525,7 @@ const index = () => {
                         <div title='ลบ' onClick={() => onRemove(item.code)} className={styles.icon}><i className="fas fa-trash"></i></div>
                     </div>
                 ))}
-                {isValidating && isStart && (data?.length !== data?.slice(0, limit).length || isStart) && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กำลังค้นหา...</span>}
+                {isValidating && isStart && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กำลังค้นหา...</span>}
                 <div style={{ display: data && data?.every(item => item) ? 'flex' : 'none' }} className={styles.loader_item} ref={conRef} />
                 <div style={{ position: 'absolute', left: 0, height: '45px', top: '0' }} ref={contetnIntersecRef} />
             </div>
