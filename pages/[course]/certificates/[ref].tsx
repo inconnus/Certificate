@@ -9,7 +9,8 @@ import useSWR from 'swr'
 import axios from 'axios'
 import PDFDocument from 'pdfkit'
 import font from 'fonts/THSarabunNewBold'
-// 
+import dayjs from 'dayjs'
+import 'dayjs/locale/th'
 const Preview: FC<{ data: string[], forSave?: boolean, isSave?: boolean, setIsSave?: any }> = ({ data, forSave = false, isSave, setIsSave }: any) => {
     const router = useRouter()
     const contentRef = useRef<any>()
@@ -70,7 +71,7 @@ const Ref = () => {
     const [isSave, setIsSave] = useState<boolean>(false)
     const course: string = String(router.query.course)
     const { data } = useSWR(router.query.ref ? `/api/certificate/${router.query.ref}` : null, fetcher)
-    // console.log(data);
+    console.log(data);
     // console.log(router.query.ref);
 
 
@@ -135,8 +136,9 @@ const Ref = () => {
                         <text x="612" y="148.75" style={{ fontSize: "29" }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</text>
                         <text x="612" y="189.30" style={{ fontSize: "23" }}>ขอมอบประกาศนียบัตรฉบับนี้เพื่อแสดงว่า</text>
                         <text x={612} y={239.41} fontSize={48}  >{`${data?.firstName || ''} ${data?.lastName || ''}`}</text>
-                        <text x={612} y={281.81} fontSize={23} >{data?.wording1}</text>
-                        <text x={612} y={309.57} fontSize={23} >{data?.wording2}</text>
+                        <text x={612} y={281.81} fontSize={23} >{data?.text1}</text>
+                        <text x={612} y={315} fontSize={23} >{data?.text2}</text>
+                        <text x={612} y={data?.text2 ? 349 : 315} fontSize={23} >{`ให้ไว้ ณ วันที่ ${dayjs.unix(data?.timestamp).add(543, 'year').locale('th').format('DD MMMM พ.ศ. YYYY')}`}</text>
                         <text x="038" y="437.79" style={{ fontSize: "12", textAnchor: 'start', fontFamily: "TH Sarabun New" }}>{`Verify at ${(URL_MAPPTING as any)[course]}/certificates/${router.query.ref}`}</text>
                     </svg>
                     {/* <span style={{ right: '3.7vh', top: '20.4vh', fontSize: '6.4vh' }}>สถาบันวิทยาการหุ่นยนต์ภาคสนาม</span>

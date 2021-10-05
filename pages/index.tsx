@@ -11,40 +11,46 @@ import DateRangePicker from 'react-bootstrap-daterangepicker';
 import Checkbox from 'widgets/Checkbox'
 import { bool } from 'aws-sdk/clients/signer'
 import { mutate } from 'swr'
+import DateRange from 'widgets/DateRange'
+import { createPortal } from 'react-dom'
 const easeOutQuint = (x: number): number => 1 - Math.pow(1 - x, 5)
 
 
-const DatePicker: FC<any> = ({ onChange }) => {
-    const [dateText, setDateText] = useState({ from: '', to: '' })
-    const fromRef = useRef(null)
-    const toRef = useRef(null)
-    const onInputChange = (e: ChangeEvent<HTMLInputElement>, key: string) => {
-        const value = e.currentTarget.value
+const DatePicker: FC<any> = ({ onChange, setFocus, focus, rangeDate, setRangeDate }) => {
+    const inputRef = useRef<HTMLInputElement>(null)
 
-        if (!fromRef.current.value || !toRef.current.value || dayjs(toRef.current.value).isBefore(dayjs(fromRef.current.value))) {
-            toRef.current.value = value
-            fromRef.current.value = value
-            setDateText({ from: dayjs(value).format('DD/MM/YYYY'), to: dayjs(value).format('DD/MM/YYYY') })
+    useEffect(() => {
+        const mousedown = () => {
+            setFocus(false)
         }
-        else setDateText({ from: dayjs(fromRef.current.value).format('DD/MM/YYYY'), to: dayjs(toRef.current.value).format('DD/MM/YYYY') })
-        // setDateText({ ...dateText, [key]: dayjs(value).format('DD/MM/YYYY') })
-        onChange(dayjs(fromRef.current.value).unix(), dayjs(toRef.current.value).unix())
-
+        if (focus) addEventListener('mousedown', mousedown)
+        else removeEventListener('mousedown', mousedown)
+    }, [focus])
+    const onDateChange = (date: dayjs.Dayjs[]) => {
+        if (!date?.length) return
+        if (onChange) {
+            onChange(date)
+            setRangeDate(date)
+            inputRef.current.value = `${date[0].format('DD/MM/YY')} - ${date[1].format('DD/MM/YY')}`
+        }
     }
     return (
-        <div className={styles.date_picker}>
-            <div className={styles.date}>
-                <span>{dateText.from}</span>
-                <input ref={fromRef} onChange={e => onInputChange(e, 'from')} style={{ width: '150px' }} type="date" />
-            </div>
-            <span style={{ margin: '0 5px', flexShrink: 0 }}>-</span>
-            <div className={styles.date}>
-                <span>{dateText.to}</span>
-                <input ref={toRef} onChange={e => onInputChange(e, 'to')} style={{ width: '150px' }} type="date" />
-            </div>
-
+        <div onMouseDown={e => e.stopPropagation()} className={styles.date_picker}>
+            <input ref={inputRef} onClick={() => setFocus(focus => !focus)} readOnly />
+            <i className={`far fa-calendar-alt ${styles.cal}`}></i>
+            {focus && <div className={styles.date}>
+                <DateRange onChange={onDateChange} defaultValue={rangeDate} />
+            </div>}
         </div>
     )
+}
+
+const DuplicateModal: FC<any> = ({ children, setActive }) => {
+    return createPortal(<div onClick={() => setActive(false)} className={styles.duplicate_modal}>
+        <div onClick={(e) => e.stopPropagation()} className={styles.container}>
+            {children}
+        </div>
+    </div>, document.getElementById('overlay'))
 }
 const Upload: FC<any> = ({ onSuccess }) => {
     const [text, setText] = useState('')
@@ -52,6 +58,9 @@ const Upload: FC<any> = ({ onSuccess }) => {
     const fileRef = useRef<HTMLInputElement>()
     const passwordRef = useRef<HTMLInputElement>()
     const intervalRef = useRef<NodeJS.Timer>()
+    const [du, setDu] = useState(false)
+    const [duplicateDate, setDuplicateDate] = useState([])
+    const [ModalWrapper, modal, setModal] = useModal()
     const { loading: [loading, setLoading], notify } = useContext(AppContext)
 
     const onChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -92,9 +101,14 @@ const Upload: FC<any> = ({ onSuccess }) => {
                 break
             }
             if (status.data.status === 'ERROR') {
-                // clearInterval(intervalRef.current)
                 setLoading(false)
-                // console.log('push');
+                if (status.data.duplicated) {
+                    notify.current.push('พบข้อมูลซ้ำ กรุณาลองอีกครั้ง', 'error')
+                    // setModal({ name: 'duplicate' })
+                    setDu(true)
+                    setDuplicateDate(status.data.duplicated)
+                    break
+                }
                 notify.current.push('ข้อมูลไม่ถูกต้อง กรุณาลองอีกครั้ง', 'error')
                 break
             }
@@ -116,7 +130,50 @@ const Upload: FC<any> = ({ onSuccess }) => {
     }, [])
     return (
         <div className={styles.import}>
-            <span style={{ fontSize: '1.2em' }}>นำเข้ารายชื่อ</span>
+            {du && <DuplicateModal setActive={setDu}>
+
+                <span style={{ marginBottom: '10px' }}>ตรวจพบไฟล์ซ้ำในระบบ</span>
+                <div className={styles.table_container}>
+                    <div className={styles.item}>
+                        <div className={styles.fixed} >#</div>
+                        <div style={{ minWidth: '100px' }} className={styles.fixed} >
+                            <span>ชื่อ</span>
+                        </div>
+                        <div className={styles.fixed} >
+                            <span>นามสกุล</span>
+                        </div>
+                        <div className={styles.flexible} >
+                            <span> ชื่อกิจกรรม</span>
+                        </div>
+                        <div style={{ minWidth: '190px', justifyContent: 'flex-end' }} className={styles.fixed} >
+                            <span> วันที่ออกใบประกาศ</span>
+                        </div>
+
+                    </div>
+                    {duplicateDate.map((item, index) => (
+                        <div key={index} style={{ animation: 'none', opacity: 1, transform: 'none' }} className={styles.item}>
+                            <div className={styles.fixed} >{index + 1}</div>
+                            <div style={{ minWidth: '100px' }} className={styles.fixed} >
+                                <span>{item.firstName}</span>
+                            </div>
+                            <div className={styles.fixed} >
+                                <span>{item.lastName}</span>
+                            </div>
+                            <div className={styles.flexible} >
+                                <span>{`${item.text1}${item.text2}`}</span>
+                            </div>
+                            <div style={{ minWidth: '190px', justifyContent: 'flex-end' }} className={styles.fixed} >
+                                <span > {dayjs.unix(item.timestamp).locale('th').format('DD MMMM YYYY')}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </DuplicateModal>}
+            <div style={{ alignItems: 'center' }}>
+                <span style={{ fontSize: '1.2em' }}>นำเข้ารายชื่อ</span>
+                {duplicateDate.length > 0 && <span onClick={() => setDu(true)} style={{ fontSize: '0.8em', marginTop: '2px', marginLeft: '5px', color: 'red', cursor: 'pointer' }}>(ไฟล์ซ้ำในระบบ)</span>}
+
+            </div>
             <div className={styles.template}>
                 <i className="fas fa-download"></i>
                 <Link href='https://certificate-generator.s3.ap-southeast-1.amazonaws.com/template.xlsx'>
@@ -170,7 +227,7 @@ const index = () => {
     const [isScroll, setIsScroll] = useState(false)
     const [isStart, setStart] = useState(false)
     const [error, setError] = useState(false)
-    const [limit, setLimit] = useState(50)
+    const [limit, setLimit] = useState(0)
     const { loading: [loading, setLoading], notify } = useContext(AppContext)
     const [filter, setFilter] = useState<Filter>({
         firstName: '',
@@ -186,10 +243,22 @@ const index = () => {
     const [currentKey, setCurrentKey] = useState('')
     const [checkbox, setCheckbox] = useState([])
     const [isExport, setExport] = useState(false)
+    const [focus, setFocus] = useState(false)
+    const [rangeDate, setRangeDate] = useState<dayjs.Dayjs[]>([])
     const selectRef = useRef<HTMLSelectElement>()
     const passwordRef = useRef<HTMLInputElement>()
     const formRef = useRef<HTMLFormElement>()
-    const { swr: { data: rawData, mutate, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(currentKey ? (filterHandler(filter, currentCourse, currentKey)) : null, { limit: limit })
+    const { swr: { data: rawData, mutate, setSize, isValidating }, contetnIntersecRef: conRef } = useSWRScroll(currentKey ? (filterHandler(filter, currentCourse, currentKey)) : null, {
+        limit: 50,
+        onIntersection: (ratio) => {
+            if (ratio === 1) {
+                console.log(ratio);
+                if (!isStart) return
+                setLimit(limit => limit + 50)
+
+            }
+        }
+    })
     const data = useMemo(() => rawData && rawData.flatMap(item => item.data), [rawData])
     const [pageInterRef, contetnIntersecRef] = useIntersection(async (entries: IntersectionObserverEntry[]) => {
         const ratio = entries[0].intersectionRatio
@@ -206,6 +275,7 @@ const index = () => {
             // console.log('error');
         }
         else setError(false)
+        // setLoading(true)
         // console.log(data);
 
     }, [data])
@@ -235,8 +305,10 @@ const index = () => {
         }
         window.requestAnimationFrame(step)
     }
-    const onDateChange = (from: number, to: number) => {
-        setFilter({ ...filter, from, to })
+    const onDateChange = (date: dayjs.Dayjs[]) => {
+        if (!date.length) return
+        console.log('dat3', date);
+        setFilter({ ...filter, from: date[0].unix(), to: date[1].unix() })
     }
     const onSearch = (e: ChangeEvent<HTMLInputElement>, key: string) => {
         const text = e.currentTarget.value
@@ -283,6 +355,8 @@ const index = () => {
         localStorage.setItem('TEAM', value)
     }
     const onUploadSuccess = (password: string, team: string) => {
+        console.log('asd');
+
         setModal({})
         selectRef.current.value = team
         passwordRef.current.value = password
@@ -294,7 +368,7 @@ const index = () => {
     }
     const onCheckAll = (value: boolean) => {
         if (!data) return
-        if (value) setCheckbox(data.map(item => item.code))
+        if (value) setCheckbox(data.slice(0, limit).map(item => item.code))
         else setCheckbox([])
     }
     const onRemove = async (code: string) => {
@@ -307,12 +381,24 @@ const index = () => {
 
 
     }
+    const removeAll = async () => {
+        setLoading(true)
+        const res = await axios.post(`/api/${currentCourse}/remove?key=${currentKey}`, { codes: checkbox })
+        console.log(res.data);
+        await mutate()
+        setLoading(false)
+        setCheckbox([])
+        notify.current.push('ลบข้อมูลสำเร็จ!')
+
+
+    }
     const onCopy = (url: string) => {
         navigator.clipboard.writeText(url)
         notify.current.push('คัดลอกลิงค์สำเร็จ!')
     }
     const onFilterClear = () => {
         formRef.current.reset()
+        setRangeDate([])
         setFilter({
             firstName: '',
             lastName: '',
@@ -333,6 +419,7 @@ const index = () => {
     }, [])
     return (
         <div className={styles.page}>
+
             <ModalWrapper name='import'>
                 <Upload onSuccess={onUploadSuccess} />
             </ModalWrapper>
@@ -343,14 +430,14 @@ const index = () => {
             <div className={styles.console}>
                 <div style={{ flexShrink: 0, alignItems: 'center' }}>
                     {checkbox.length > 0 && <div className={styles.tools}>
-                        <div title='ลบ' className={styles.icon}><i className="fas fa-trash"></i></div> <span> ({checkbox.length})</span>
+                        <div onClick={removeAll} title='ลบ' className={styles.icon}><i className="fas fa-trash"></i></div> <span> ({checkbox.length})</span>
                     </div>}
 
                 </div>
                 {/* <form id='query'> */}
                 <div style={{ flexShrink: 0, display: 'flex' }}>
-                    {data?.length && <span style={{ flexShrink: 0, height: '100%', display: 'flex', alignItems: 'center', marginRight: '10px' }}>
-                        Total {data?.length} {data.slice(-1)[0].lastEvaluatedKey && '+'} data
+                    {data?.length > 0 && <span style={{ flexShrink: 0, height: '100%', display: 'flex', alignItems: 'center', marginRight: '10px' }}>
+                        Total {data?.slice(0, limit).length}{data?.slice(0, limit).length < data?.length && '+'} data
                     </span>}
                     <button style={{ marginRight: '10px' }} onClick={onImport}>
                         <i className="fas fa-file-import"></i>
@@ -376,9 +463,9 @@ const index = () => {
 
             </div>
             <div ref={pageInterRef} className={styles.table_container}>
-                <form ref={formRef} onSubmit={e => e.preventDefault()}>
-                    <div className={styles.item}>
-                        <div style={{ paddingTop: '2px' }} className={styles.fixed} ><Checkbox icon={checkbox.length === data?.length ? 'all' : 'partial'} value={checkbox.length} onChange={onCheckAll} /></div>
+                <div className={styles.item}>
+                    <form ref={formRef} onSubmit={e => e.preventDefault()}>
+                        <div style={{ paddingTop: '2px' }} className={styles.fixed} ><Checkbox icon={checkbox.length === data?.slice(0, limit).length ? 'all' : 'partial'} value={checkbox.length} onChange={onCheckAll} /></div>
                         <div className={styles.fixed} >#</div>
                         <div className={styles.fixed} >
                             <span>ชื่อ</span>
@@ -391,9 +478,11 @@ const index = () => {
                         <div className={styles.flexible} >
                             <span> ชื่อกิจกรรม</span>
                         </div>
-                        <div className={styles.fixed} >
-                            <span> วันที่ออกใบประกาศ</span>
-                            <DatePicker onChange={(from: number, to: number) => onDateChange(from, to)} />
+                        <div style={{ minWidth: '190px', justifyContent: 'flex-end' }} className={styles.fixed} >
+                            {focus && <div className={styles.focus} />}
+                            <span style={{ marginLeft: '50px', textAlign: 'right' }}> วันที่ออกใบประกาศ</span>
+                            <DatePicker rangeDate={rangeDate} setRangeDate={setRangeDate} onChange={value => onDateChange(value)} setFocus={setFocus} focus={focus} />
+                            {/* <DatePicker onChange={(from: number, to: number) => onDateChange(from, to)} /> */}
                         </div>
                         <div className={styles.fixed} >
                             <span>Email</span>
@@ -406,16 +495,16 @@ const index = () => {
                         {/* <div className={styles.fixed} >
                     <span>  URL</span>
                     </div> */}
-                    </div>
-                </form>
+                    </form>
+                </div>
                 {!currentKey && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>กรุณาใส่รหัสผ่านเพื่อค้นหา</span>}
                 {error && !isStart && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>รหัสผ่านไม่ถูกต้อง</span>}
                 {!error && currentKey && isStart && !data && !isValidating && <span style={{ width: '100$', padding: '20px', textAlign: 'center' }}>ไม่พบรายการ</span>}
 
-                {data?.every(item => item) && data?.map((item, index) => (
+                {data?.every(item => item) && data?.slice(0, limit).map((item, index) => (
                     <div key={index} className={styles.item}>
                         <div className={styles.fixed}><Checkbox value={checkbox.includes(item.code)} onChange={(value: boolean) => onCheckbox(value, item.code)} /></div>
-                        <div className={styles.fixed}><span>{1000}</span></div>
+                        <div className={styles.fixed}><span>{index + 1}</span></div>
                         <div className={styles.fixed}><span>{item.firstName}</span></div>
                         <div className={styles.fixed}><span>{item.lastName}</span></div>
                         <div className={styles.flexible}>

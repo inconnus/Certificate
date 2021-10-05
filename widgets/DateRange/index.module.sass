@@ -1,0 +1,130 @@
+@keyframes active 
+    0%
+        transform: scale(1)
+    50%
+        transform: scale(1.2)
+    100%
+        transform: scale(1)
+
+
+.container
+    flex-direction: column
+    padding: 10px
+    z-index: 99
+    
+    .date_picker
+        // height: 304px
+        background: #FFF
+        box-shadow: 0 4px 10px 0 rgb(0 0 0 / 15%)
+        // border: 1px solid #ccc
+        border-radius: 5px
+        align-self: flex-start
+        font-size: 0.9em
+        .calendar
+            flex-direction: column
+            padding: 10px 20px
+            align-self: flex-start
+            user-select: none
+            .month
+                width: 100%
+                position: relative
+                align-items: center
+                span
+                    width: 100%
+                    cursor: default
+                    text-align: center
+                i
+                    position: absolute
+                    cursor: pointer
+                    color: #f27314
+                    &:last-child
+                        right: 0
+
+            .days
+                span
+                    width: 35px
+                    height: 35px
+                    color: #aaa
+                    font-size: 0.9em
+                    display: flex
+                    align-items: center
+                    justify-content: center
+                    cursor: default
+            .numbers
+                flex-wrap: wrap
+                width: 245px
+
+                .number
+
+                    position: relative
+                    cursor: pointer
+                    text-align: center
+                    color: #555
+                    font-size: 0.9em
+                    flex-shrink: 0
+                    // border-radius: 50%
+                    width: 35px
+                    height: 35px
+                    margin: 1px 0
+                    // overflow: hidden
+                    // &:nth-child(7n)
+                    //     border-radius: 0 3px 3px 0
+                    // &:nth-child(7n+1)
+                    //     border-radius: 3px 0 0 3px
+                    // border: 1px solid #5393f900
+                    // 
+                    &.end
+                        background: linear-gradient(90deg,#f274146b,50%,transparent 50%)
+                    &.start
+                        background: linear-gradient(90deg,transparent,50%,#f274146b 50%)
+                    &.active
+                        
+                        span
+                            animation: active 0.2s forwards
+                            background: #f27314 !important
+                            color: #FFF !important
+                            border-radius: 50%
+                    &.active_pre
+                        span
+                            background: #fa994e !important
+                            color: #FFF !important
+                            border-radius: 50%
+
+                    &.isDay
+                        span
+                            box-shadow: inset 0 0 0 1px #f27314
+                            // border: 1px solid #f27314
+                            border-radius: 50% 
+                    &.padding
+                        pointer-events: none
+                        color: #ccc
+                    &:hover,&.fade
+                        span
+                            color: #FFF
+                            background: #f274146b
+                    &.fade
+                        span
+                            border-radius: 0 !important
+                    &:hover
+                        span
+                            border-radius: 50%
+                    span
+                        width: 35px
+                        height: 35px
+                        flex-shrink: 0
+                        display: flex
+                        align-items: center
+                        justify-content: center
+                        
+                            
+
+                        // &::before
+                        //     content: ''
+                        //     width: 100%
+                        //     height: 100%
+                        //     position: absolute
+                        //     background: #5393f9
+                        //     z-index: 1
+
+                            // &::before
+                            //     background: #5393f9b9

@@ -21,7 +21,7 @@ export const useIntersection = (callback?: any, dep?: any, thresholds = range(0,
     }, dep)
     return [observerRef, entriesRef]
 }
-export const useSWRScroll = (url: string, option = { limit: 20 }) => {
+export const useSWRScroll = (url: string, option = { limit: 20, onIntersection: null }) => {
     const router = useRouter()
     const swrData = useSWRInfinite((index, prev) => {
         if (prev && !prev.lastEvaluatedKey) return null
@@ -32,6 +32,7 @@ export const useSWRScroll = (url: string, option = { limit: 20 }) => {
     }, (url: any) => axios.get(url).then(res => res.data))
     const [pageInterRef, contetnIntersecRef] = useIntersection(async (entries: IntersectionObserverEntry[]) => {
         const ratio = entries[0].intersectionRatio
+        if(option.onIntersection) option.onIntersection(ratio)
         if (ratio === 1 && swrData.data) {
             swrData.setSize(size => size + 1)
         }
