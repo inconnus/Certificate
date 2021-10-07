@@ -179,7 +179,7 @@ const Upload: FC<any> = ({ onSuccess }) => {
             </div>
             <div className={styles.upload}>
                 <div style={{ alignItems: 'center' ,overflow:'hidden'}}>
-                    <label htmlFor='upload'>เลือกไฟล์</label>
+                    <label style={{marginRight:'10px'}} htmlFor='upload'>เลือกไฟล์</label>
                     <input ref={fileRef} id='upload' onChange={onChange} type='file' accept='.xlsx,.xls' />
                     <span style={{whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{text ? text : 'ไม่ได้เลือกไฟล์'}</span>
                 </div>
@@ -190,7 +190,7 @@ const Upload: FC<any> = ({ onSuccess }) => {
                     <option value='smartfactory'>Smart Factory</option>
                     <option value='3dtelepringting'>Tele-3D Printing</option>
                 </select>
-                <input ref={passwordRef} name='password' type='password' placeholder='Password' />
+                <input style={{marginRight:'10px'}} ref={passwordRef} name='password' type='password' placeholder='Password' />
                 <button onClick={onUpload}>
                     <i className="fas fa-upload"></i>
                     <span>อัพโหลด</span>
