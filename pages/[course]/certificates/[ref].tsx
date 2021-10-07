@@ -181,7 +181,7 @@ const Ref = () => {
                             <text x={612} y={239.41} fontSize={48}  >{`${data?.firstName || ''} ${data?.lastName || ''}`}</text>
                             <text x={612} y={281.81} fontSize={23} >{data?.text1}</text>
                             <text x={612} y={315} fontSize={23} >{data?.text2}</text>
-                            <text x={612} y={data?.text2 ? 349 : 315} fontSize={23} >{`ให้ไว้ ณ วันที่ ${dayjs.unix(data?.timestamp).add(543, 'year').locale('th').format('DD MMMM พ.ศ. YYYY')}`}</text>
+                            <text x={612} y={data?.text2 ? 349 : 315} fontSize={23} >{`ให้ไว้ ณ วันที่ ${dayjs.unix(data?.timestamp).add(543, 'year').locale('th').format('D MMMM พ.ศ. YYYY')}`}</text>
                         </>}
                         <text x="038" y="437.79" style={{ fontSize: "12", textAnchor: 'start', fontFamily: "TH Sarabun New" }}>{`Verify at ${(URL_MAPPTING as any)[course]}/certificates/${router.query.ref}`}</text>
                     </svg>
