@@ -7,10 +7,7 @@ import { useIntersection, useSWRScroll } from 'hooks'
 import dayjs from 'dayjs'
 import 'dayjs/locale/th'
 import AppContext from 'contexts/app'
-import DateRangePicker from 'react-bootstrap-daterangepicker';
 import Checkbox from 'widgets/Checkbox'
-import { bool } from 'aws-sdk/clients/signer'
-import { mutate } from 'swr'
 import DateRange from 'widgets/DateRange'
 import { createPortal } from 'react-dom'
 const easeOutQuint = (x: number): number => 1 - Math.pow(1 - x, 5)
