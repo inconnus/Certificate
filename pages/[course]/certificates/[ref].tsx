@@ -1,8 +1,9 @@
 import { useRouter } from 'next/dist/client/router'
-import React, { useRef, useEffect, useState, FC, useMemo } from 'react'
+import React, { useRef, useEffect, useState, FC, useMemo, useContext } from 'react'
 import styles from './ref.module.sass'
 import useSWR from 'swr'
 import axios from 'axios'
+import AppContext from 'contexts/app'
 import dayjs from 'dayjs'
 import 'dayjs/locale/th'
 
@@ -11,6 +12,7 @@ const fetcher = (url: string) => axios.get(url).then(item => item.data.data)
 const URL_MAPPTING = { 'tele3dprinting': 'tele3dprinting.com', 'smartfactory': 'smartfactory.hcilab.net' }
 const Ref = () => {
     // const data = useMemo(() => raw_data || [], [raw_data])
+    const { loading: [loading, setLoading] } = useContext(AppContext)
     const router = useRouter()
     const [zoom, setZoom] = useState<number>(1)
     const contentRef = useRef<HTMLDivElement>()
@@ -21,6 +23,7 @@ const Ref = () => {
     const course: string = String(router.query.course)
     const { data } = useSWR(router.query.ref ? `/api/certificate/${router.query.ref}` : null, fetcher)
     const fileRef = useRef<any>()
+    const intervalRef = useRef<any>()
 
     useEffect(() => {
         if (!data) return
@@ -45,13 +48,19 @@ const Ref = () => {
 
     }, [data])
     const save = async () => {
-
-        const link = document.createElement('a');
-        link.href = fileRef.current;
-        link.setAttribute('download', `${router.query.ref}.pdf`); //or any other extension
-        document.body.appendChild(link);
-        link.click();
-        link.parentNode.removeChild(link);
+        setLoading(true)
+        const inter = () => {
+            if (!fileRef.current) return
+            const link = document.createElement('a')
+            link.href = fileRef.current
+            link.setAttribute('download', `${router.query.ref}.pdf`)
+            document.body.appendChild(link)
+            link.click()
+            link.parentNode.removeChild(link)
+            clearInterval(intervalRef.current)
+            setLoading(false)
+        }
+        intervalRef.current = setInterval(inter, 500)
     }
 
     return (
@@ -67,16 +76,16 @@ const Ref = () => {
                     {/* <Template /> */}
                     <img className={styles.template} src={`/images/template/${router.query.course}.png`} />
                     <svg ref={svgElement} viewBox='0 0 629 464' fill="#231F20" >
-                        <text x="612" y="110" ref={textRef} fontSize={29} >สถาบันวิทยาการหุ่นยนต์ภาคสนาม</text>
-                        <text x="612" y="148.75" style={{ fontSize: "29" }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</text>
-                        <text x="612" y="189.30" style={{ fontSize: "23" }}>ขอมอบประกาศนียบัตรฉบับนี้เพื่อแสดงว่า</text>
+                        <text x="625" y="110" ref={textRef} fontSize={29} >สถาบันวิทยาการหุ่นยนต์ภาคสนาม</text>
+                        <text x="625" y="148.75" style={{ fontSize: "29" }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</text>
+                        <text x="625" y="189.30" style={{ fontSize: "23" }}>ขอมอบประกาศนียบัตรฉบับนี้เพื่อแสดงว่า</text>
                         {data && <>
-                            <text x={612} y={239.41} fontSize={48}  >{`${data?.firstName || ''} ${data?.lastName || ''}`}</text>
-                            <text x={612} y={281.81} fontSize={23} >{data?.text1}</text>
-                            <text x={612} y={315} fontSize={23} >{data?.text2}</text>
-                            <text x={612} y={data?.text2 ? 349 : 315} fontSize={23} >{`ให้ไว้ ณ วันที่ ${dayjs.unix(data?.timestamp).add(543, 'year').locale('th').format('D MMMM พ.ศ. YYYY')}`}</text>
+                            <text x={625} y={239.41} fontSize={48}  >{`${data?.firstName || ''} ${data?.lastName || ''}`}</text>
+                            <text x={625} y={281.81} fontSize={23} >{data?.text1}</text>
+                            <text x={625} y={315} fontSize={23} >{data?.text2}</text>
+                            <text x={625} y={data?.text2 ? 349 : 315} fontSize={23} >{`ให้ไว้ ณ วันที่ ${dayjs.unix(data?.timestamp).add(543, 'year').locale('th').format('D MMMM พ.ศ. YYYY')}`}</text>
                         </>}
-                        <text x="038" y="437.79" style={{ fontSize: "12", textAnchor: 'start', fontFamily: "TH Sarabun New" }}>{`Verify at ${(URL_MAPPTING as any)[course]}/certificates/${router.query.ref}`}</text>
+                        <text x="20" y="452" style={{ fontSize: "12", textAnchor: 'start', fontFamily: "TH Sarabun New" }}>{`Verify at ${(URL_MAPPTING as any)[course]}/certificates/${router.query.ref}`}</text>
                     </svg>
                     {/* <span style={{ right: '3.7vh', top: '20.4vh', fontSize: '6.4vh' }}>สถาบันวิทยาการหุ่นยนต์ภาคสนาม</span>
                     <span style={{ right: '3.7vh', top: '28.1vh', fontSize: '6.4vh' }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</span>

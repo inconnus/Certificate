@@ -6,7 +6,7 @@ import axios from 'axios'
 const URL_MAPPTING = { 'tele3dprinting': 'tele3dprinting.com', 'smartfactory': 'smartfactory.hcilab.net' }
 const width = 841.89
 const height = 595.28
-const pad = width - 40
+const pad = width - 20
 export default async (req: NextApiRequest, res: NextApiResponse) => {
     const { name, text1, text2, date, code, organizer } = req.body
     const { data: template } = await axios.get(`https://certificate-navy.vercel.app/images/template/${organizer}.png`, { responseType: 'arraybuffer' })
@@ -29,7 +29,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
     doc.fontSize(15.4)
     doc.font(font)
-    doc.text(`Verify at ${URL_MAPPTING[organizer]}/certificates/${code}`, 67, 548.68, { height: 1 }).link(67, 548.68, 250, 14, `https://${URL_MAPPTING[organizer]}/certificates/${code}`)
+    doc.text(`Verify at ${URL_MAPPTING[organizer]}/certificates/${code}`, 41, 565, { height: 1 }).link(67, 548.68, 250, 14, `https://${URL_MAPPTING[organizer]}/certificates/${code}`)
     doc.end()
     doc.on('end', () => {
         // console.log('end');
