@@ -3,7 +3,7 @@ import fs from 'fs'
 import blobStream from 'blob-stream'
 import PDFDocument from 'pdfkit'
 import axios from 'axios'
-const URL_MAPPTING = { '3dtelepringting': 'tele3dprinting.com', 'smartfactory': 'smartfactory.hcilab.net' }
+const URL_MAPPTING = { 'tele3dprinting': 'tele3dprinting.com', 'smartfactory': 'smartfactory.hcilab.net' }
 const width = 841.89
 const height = 595.28
 const pad = width - 40

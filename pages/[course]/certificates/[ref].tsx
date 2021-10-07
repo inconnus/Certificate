@@ -1,65 +1,14 @@
 import { useRouter } from 'next/dist/client/router'
 import React, { useRef, useEffect, useState, FC, useMemo } from 'react'
 import styles from './ref.module.sass'
-// import { jsPDF } from "jspdf"
-// var doc = new jsPDF("landscape");
-// import 'svg2pdf.js'
-// import html2canvas from 'html2canvas'
 import useSWR from 'swr'
 import axios from 'axios'
-// import PDFDocument from 'pdfkit'
-// import font from 'fonts/THSarabunNewBold'
 import dayjs from 'dayjs'
 import 'dayjs/locale/th'
-const Preview: FC<{ data: string[], forSave?: boolean, isSave?: boolean, setIsSave?: any }> = ({ data, forSave = false, isSave, setIsSave }: any) => {
-    const router = useRouter()
-    const contentRef = useRef<any>()
-    // const { data } = useSwr('https://jsonplaceholder.typicode.com/posts/1')
-    // useEffect(() => {
 
-    //     (async () => {
-    //         if (!isSave) return
-    //         const canvas = await html2canvas(contentRef.current)
-    //         var imgData = canvas.toDataURL("image/jpeg", 1.0)
-    //         var pdf = new jsPDF({
-    //             orientation: 'landscape',
-    //             format: 'a5',
-    //             compress: true
-    //         })
-    //         pdf.addImage(imgData, 'JPG', 0, 0, 210, 148)
-    //         pdf.save("HTML-Document.pdf")
-    //         setIsSave(false)
-    //     })()
-    // }, [isSave])
-    return (
-        <div className={styles.content_wrap}>
-            <div className={`${styles.content} ${forSave ? styles.save : ''} `}>
-                <img src='/images/template.png' />
-                <span style={{ right: '3.7vh', top: '20.4vh', fontSize: '6.4vh' }}>สถาบันวิทยาการหุ่นยนต์ภาคสนาม</span>
-                <span style={{ right: '3.7vh', top: '28.1vh', fontSize: '6.4vh' }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</span>
-                <span style={{ right: '3.7vh', top: '37.67vh', fontSize: '5.07vh' }}>ขอมอบประกาศนียบัตรฉบับนี้เพื่อแสดงว่า</span>
-                <span style={{ right: '3.7vh', top: '45.1vh', fontSize: '10.55vh' }}>{data[0]}</span>
-                <span style={{ right: '3.7vh', top: '58.5vh', fontSize: '5.07vh' }}>{data[1]}</span>
-                <span style={{ right: '3.7vh', top: '64.5vh', fontSize: '5.07vh' }}>{data[2]}</span>
-                <span className={styles.normal} style={{ left: '7.5vh', top: '94.67vh', fontSize: '2.64vh' }}>{`Verify at smartfactory.hcilab.net/certificates/${router.query.ref}`}</span>
-            </div>
-        </div>
-    )
-}
-interface TextLoader { x: number, y: number, size: number, w: number, text: string }
-const TextLoader = ({ x, y, size, w, text }: TextLoader) => {
-    return (
-        <svg x={x} y={y} >
-            {/* {text ? <text style={{ fontSize: `${size}px` }}>{text}</text> :
-                <rect className='loader' transform={`translate(${-w},${(-size * 0.8) + 3})`} x="0" y="0" rx={size * 0.8 / 2} height={size * 0.8} width={w} fill="#b2b2b2" /> */}
-            <text style={{ fontSize: `${size}px` }}>{text}</text>
-        </svg>
-    )
-    // <rect transform={`translate(${-w},${-h - 2})`} x="0" y="0" rx={h / 2} height={h} width={w} fill="#b2b2b2" />
-}
 interface Ref { data: string[] }
 const fetcher = (url: string) => axios.get(url).then(item => item.data.data)
-const URL_MAPPTING = { '3dtelepringting': 'tele3dprinting.com', 'smartfactory': 'smartfactory.hcilab.net' }
+const URL_MAPPTING = { 'tele3dprinting': 'tele3dprinting.com', 'smartfactory': 'smartfactory.hcilab.net' }
 const Ref = () => {
     // const data = useMemo(() => raw_data || [], [raw_data])
     const router = useRouter()
@@ -71,95 +20,41 @@ const Ref = () => {
     const [isSave, setIsSave] = useState<boolean>(false)
     const course: string = String(router.query.course)
     const { data } = useSWR(router.query.ref ? `/api/certificate/${router.query.ref}` : null, fetcher)
-    // console.log(data);
-    // console.log(router.query.ref);
+    const fileRef = useRef<any>()
 
+    useEffect(() => {
+        if (!data) return
+        console.log(data);
+        
+        (async () => {
+            const res = await axios.post('/api/pdfGenerator', {
+                name: `${data.firstName} ${data.lastName}`,
+                text1: `${data.text1}`,
+                text2: `${data.text2}`,
+                date: `ให้ไว้ ณ วันที่ ${dayjs.unix(data?.timestamp).add(543, 'year').locale('th').format('D MMMM พ.ศ. YYYY')}`,
+                code: data.code,
+                organizer: data.organizer
+            }, {
+                responseType: 'arraybuffer',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf'
+                }
+            })
+            const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+            fileRef.current = url
+        })()
 
-    // const { data } = useSWR('/api/test', (url) => axios.get(url).then(res => res.data.data), { fallbackData: [] })
+    }, [data])
     const save = async () => {
-        const res = await axios.post('/api/pdfGenerator', {
-            name: `${data.firstName} ${data.lastName}`,
-            text1: `${data.text1}`,
-            text2: `${data.text2}`,
-            date: `ให้ไว้ ณ วันที่ ${dayjs.unix(data?.timestamp).add(543, 'year').locale('th').format('DD MMMM พ.ศ. YYYY')}`,
-            code: data.code,
-            organizer: data.organizer
-        }, {
-            responseType: 'arraybuffer',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/pdf'
-            }
-        })
-        const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+
         const link = document.createElement('a');
-        link.href = url;
+        link.href = fileRef.current;
         link.setAttribute('download', `${router.query.ref}.pdf`); //or any other extension
         document.body.appendChild(link);
         link.click();
         link.parentNode.removeChild(link);
-        // const url = window.URL.createObjectURL(
-        //     new Blob([res.data]),
-        //   );
-
-        //   const link = document.createElement('a');
-        //   link.href = url;
-        //   link.setAttribute(
-        //     'download',
-        //     `FileName.pdf`,
-        //   );
-
-        //   // Append to html link element page
-        //   document.body.appendChild(link);
-
-        //   // Start download
-        //   link.click();
-
-        //   // Clean up and remove the link
-
-
-        return
-        // const cloneNode: HTMLDivElement = contentRef.current.cloneNode(true)
-        // cloneNode.id = 'save_layout'
-        // cloneNode.style.maxWidth = 'none'
-        // cloneNode.style.maxHeight = 'none'
-        // cloneNode.style.height = '1748px'
-        // cloneNode.style.width = '2480px'
-
-        // wrapRef.current.appendChild(cloneNode)
-        // computedStyleToInlineStyle(contentRef.current, {
-        //     recursive: true,
-        //     properties: ["font-size", "font-family", "font-weight"]
-        // })
-        // const canvas = await html2canvas(contentRef.current)
-        // // wrapRef.current.appendChild(canvas)
-
-        // // wrapRef.current.appendChild(canvas)
-        // const doc = new jsPDF({
-        //     format: 'a4',
-        //     orientation: 'landscape',
-        //     unit: 'px',
-        //     compress: true
-        // })
-        // const width = screen.width
-        // console.log(width);
-        // wrapRef.current.offsetLeft
-        // console.log(getComputedStyle(textRef.current).fontSize)
-        // console.log(doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-
-
-        // console.log(doc.internal.pageSize.getWidth());
-        // return
-        // doc.addFileToVFS("MyFont.ttf", font);
-        // doc.addFont("/fonts/THSarabunNew Bold.ttf", "THSarabunNew Bold", "normal");
-        // doc.setFont("THSarabunNew Bold");
-        // doc.addImage(canvas, 'png', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight())
-        // doc.setFontSize(29)
-        // doc.text('สถาบันวิทยาการหุ่นยนต์ภาคสนาม', 0, 20)
-        // await doc.html(contentRef.current)
-        // doc.save()
     }
-    console.log(router.query);
 
     return (
         <div className={styles.container}>

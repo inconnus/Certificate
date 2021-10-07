@@ -11,7 +11,7 @@ import Checkbox from 'widgets/Checkbox'
 import DateRange from 'widgets/DateRange'
 import { createPortal } from 'react-dom'
 const easeOutQuint = (x: number): number => 1 - Math.pow(1 - x, 5)
-
+const URL_MAPPTING = { 'tele3dprinting': 'tele3dprinting.com', 'smartfactory': 'smartfactory.hcilab.net' }
 
 const DatePicker: FC<any> = ({ onChange, setFocus, focus, rangeDate, setRangeDate }) => {
     const inputRef = useRef<HTMLInputElement>(null)
@@ -28,7 +28,7 @@ const DatePicker: FC<any> = ({ onChange, setFocus, focus, rangeDate, setRangeDat
         if (onChange) {
             onChange(date)
             setRangeDate(date)
-            inputRef.current.value = `${date[0].add(543,'year').format('DD/MM/YY')} - ${date[1].add(543,'year').format('DD/MM/YY')}`
+            inputRef.current.value = `${date[0].add(543, 'year').format('DD/MM/YY')} - ${date[1].add(543, 'year').format('DD/MM/YY')}`
         }
     }
     return (
@@ -160,7 +160,7 @@ const Upload: FC<any> = ({ onSuccess }) => {
                                 <span>{`${item.text1}${item.text2}`}</span>
                             </div>
                             <div style={{ minWidth: '190px', justifyContent: 'flex-end' }} className={styles.fixed} >
-                                <span > {dayjs.unix(item.timestamp).add(543,'year').locale('th').format('DD MMMM YYYY')}</span>
+                                <span > {dayjs.unix(item.timestamp).add(543, 'year').locale('th').format('DD MMMM YYYY')}</span>
                             </div>
                         </div>
                     ))}
@@ -178,19 +178,19 @@ const Upload: FC<any> = ({ onSuccess }) => {
                 </Link>
             </div>
             <div className={styles.upload}>
-                <div style={{ alignItems: 'center' ,overflow:'hidden'}}>
-                    <label style={{marginRight:'10px'}} htmlFor='upload'>เลือกไฟล์</label>
+                <div style={{ alignItems: 'center', overflow: 'hidden' }}>
+                    <label style={{ marginRight: '10px' }} htmlFor='upload'>เลือกไฟล์</label>
                     <input ref={fileRef} id='upload' onChange={onChange} type='file' accept='.xlsx,.xls' />
-                    <span style={{whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{text ? text : 'ไม่ได้เลือกไฟล์'}</span>
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{text ? text : 'ไม่ได้เลือกไฟล์'}</span>
                 </div>
                 <label>*.xls,*.xlsx</label>
             </div>
             <div className={styles.confirm} style={{ flexShrink: 0, display: 'flex' }}>
                 <select ref={selectRef} name='team' >
                     <option value='smartfactory'>Smart Factory</option>
-                    <option value='3dtelepringting'>Tele-3D Printing</option>
+                    <option value='tele3dprinting'>Tele-3D Printing</option>
                 </select>
-                <input style={{marginRight:'10px'}} ref={passwordRef} name='password' type='password' placeholder='Password' />
+                <input style={{ marginRight: '10px' }} ref={passwordRef} name='password' type='password' placeholder='Password' />
                 <button onClick={onUpload}>
                     <i className="fas fa-upload"></i>
                     <span>อัพโหลด</span>
@@ -446,7 +446,7 @@ const index = () => {
                     </button>
                     <select onChange={onTeamChange} ref={selectRef} name='team' >
                         <option value='smartfactory'>Smart Factory</option>
-                        <option value='3dtelepringting'>Tele-3D Printing</option>
+                        <option value='tele3dprinting'>Tele-3D Printing</option>
                     </select>
                     <input onKeyUp={onKeyUp} ref={passwordRef} name='password' type='password' placeholder='Password' />
                     <button onClick={onQuery}>
@@ -507,16 +507,16 @@ const index = () => {
                         <div className={styles.flexible}>
                             <span title={`${item.text1.trim()}${item.text2.trim()}`}>{`${item.text1.trim()}${item.text2.trim()}`}</span>
                         </div>
-                        <div className={styles.fixed}><span>{dayjs.unix(item.timestamp).add(543,'year').locale('th').format('DD MMMM YYYY')}</span></div>
+                        <div className={styles.fixed}><span>{dayjs.unix(item.timestamp).add(543, 'year').locale('th').format('DD MMMM YYYY')}</span></div>
                         <div className={styles.fixed}><span>{item.email}</span></div>
                         <div style={{ flex: '0 0 110px', minWidth: '110px' }} className={styles.fixed}>
                             <div>
 
-                                <Link href={`https://smartfactory.hcilab.net/certificates/${item.code}`}>
+                                <Link href={`https://${URL_MAPPTING[item.organizer]}/certificates/${item.code}`}>
 
                                     <a target="_blank"><div className={styles.btn_icon}><i style={{ marginRight: '10px' }} className="fas fa-external-link-alt"></i></div></a>
                                 </Link>
-                                <div title='คัดลอก' onClick={() => onCopy(`https://smartfactory.hcilab.net/certificates/${item.code}`)} className={styles.btn_icon}><i className="fas fa-copy"></i></div>
+                                <div title='คัดลอก' onClick={() => onCopy(`https://${URL_MAPPTING[item.organizer]}/certificates/${item.code}`)} className={styles.btn_icon}><i className="fas fa-copy"></i></div>
                             </div>
                         </div>
                         <div title='ลบ' onClick={() => onRemove(item.code)} className={styles.icon}><i className="fas fa-trash"></i></div>
