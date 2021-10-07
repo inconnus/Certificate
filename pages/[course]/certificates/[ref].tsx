@@ -24,8 +24,6 @@ const Ref = () => {
 
     useEffect(() => {
         if (!data) return
-        console.log(data);
-        
         (async () => {
             const res = await axios.post('/api/pdfGenerator', {
                 name: `${data.firstName} ${data.lastName}`,
