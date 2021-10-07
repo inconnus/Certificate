@@ -1,36 +1,36 @@
 import { useRouter } from 'next/dist/client/router'
 import React, { useRef, useEffect, useState, FC, useMemo } from 'react'
 import styles from './ref.module.sass'
-import { jsPDF } from "jspdf"
+// import { jsPDF } from "jspdf"
 // var doc = new jsPDF("landscape");
-import 'svg2pdf.js'
-import html2canvas from 'html2canvas'
+// import 'svg2pdf.js'
+// import html2canvas from 'html2canvas'
 import useSWR from 'swr'
 import axios from 'axios'
-import PDFDocument from 'pdfkit'
-import font from 'fonts/THSarabunNewBold'
+// import PDFDocument from 'pdfkit'
+// import font from 'fonts/THSarabunNewBold'
 import dayjs from 'dayjs'
 import 'dayjs/locale/th'
 const Preview: FC<{ data: string[], forSave?: boolean, isSave?: boolean, setIsSave?: any }> = ({ data, forSave = false, isSave, setIsSave }: any) => {
     const router = useRouter()
     const contentRef = useRef<any>()
     // const { data } = useSwr('https://jsonplaceholder.typicode.com/posts/1')
-    useEffect(() => {
+    // useEffect(() => {
 
-        (async () => {
-            if (!isSave) return
-            const canvas = await html2canvas(contentRef.current)
-            var imgData = canvas.toDataURL("image/jpeg", 1.0)
-            var pdf = new jsPDF({
-                orientation: 'landscape',
-                format: 'a5',
-                compress: true
-            })
-            pdf.addImage(imgData, 'JPG', 0, 0, 210, 148)
-            pdf.save("HTML-Document.pdf")
-            setIsSave(false)
-        })()
-    }, [isSave])
+    //     (async () => {
+    //         if (!isSave) return
+    //         const canvas = await html2canvas(contentRef.current)
+    //         var imgData = canvas.toDataURL("image/jpeg", 1.0)
+    //         var pdf = new jsPDF({
+    //             orientation: 'landscape',
+    //             format: 'a5',
+    //             compress: true
+    //         })
+    //         pdf.addImage(imgData, 'JPG', 0, 0, 210, 148)
+    //         pdf.save("HTML-Document.pdf")
+    //         setIsSave(false)
+    //     })()
+    // }, [isSave])
     return (
         <div className={styles.content_wrap}>
             <div className={`${styles.content} ${forSave ? styles.save : ''} `}>
@@ -71,12 +71,54 @@ const Ref = () => {
     const [isSave, setIsSave] = useState<boolean>(false)
     const course: string = String(router.query.course)
     const { data } = useSWR(router.query.ref ? `/api/certificate/${router.query.ref}` : null, fetcher)
-    console.log(data);
+    // console.log(data);
     // console.log(router.query.ref);
 
 
     // const { data } = useSWR('/api/test', (url) => axios.get(url).then(res => res.data.data), { fallbackData: [] })
     const save = async () => {
+        const res = await axios.post('/api/pdfGenerator', {
+            name: `${data.firstName} ${data.lastName}`,
+            text1: `${data.text1}`,
+            text2: `${data.text2}`,
+            date: `ให้ไว้ ณ วันที่ ${dayjs.unix(data?.timestamp).add(543, 'year').locale('th').format('DD MMMM พ.ศ. YYYY')}`,
+            code: data.code,
+            organizer: data.organizer
+        }, {
+            responseType: 'arraybuffer',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/pdf'
+            }
+        })
+        const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${router.query.ref}.pdf`); //or any other extension
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+        // const url = window.URL.createObjectURL(
+        //     new Blob([res.data]),
+        //   );
+
+        //   const link = document.createElement('a');
+        //   link.href = url;
+        //   link.setAttribute(
+        //     'download',
+        //     `FileName.pdf`,
+        //   );
+
+        //   // Append to html link element page
+        //   document.body.appendChild(link);
+
+        //   // Start download
+        //   link.click();
+
+        //   // Clean up and remove the link
+
+
+        return
         // const cloneNode: HTMLDivElement = contentRef.current.cloneNode(true)
         // cloneNode.id = 'save_layout'
         // cloneNode.style.maxWidth = 'none'
@@ -89,17 +131,17 @@ const Ref = () => {
         //     recursive: true,
         //     properties: ["font-size", "font-family", "font-weight"]
         // })
-        const canvas = await html2canvas(contentRef.current)
-        // wrapRef.current.appendChild(canvas)
+        // const canvas = await html2canvas(contentRef.current)
+        // // wrapRef.current.appendChild(canvas)
 
-        // wrapRef.current.appendChild(canvas)
-        const doc = new jsPDF({
-            format: 'a4',
-            orientation: 'landscape',
-            unit: 'px',
-            compress: true
-        })
-        const width = screen.width
+        // // wrapRef.current.appendChild(canvas)
+        // const doc = new jsPDF({
+        //     format: 'a4',
+        //     orientation: 'landscape',
+        //     unit: 'px',
+        //     compress: true
+        // })
+        // const width = screen.width
         // console.log(width);
         // wrapRef.current.offsetLeft
         // console.log(getComputedStyle(textRef.current).fontSize)
@@ -114,15 +156,15 @@ const Ref = () => {
         // doc.addImage(canvas, 'png', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight())
         // doc.setFontSize(29)
         // doc.text('สถาบันวิทยาการหุ่นยนต์ภาคสนาม', 0, 20)
-        await doc.html(contentRef.current)
-        doc.save()
+        // await doc.html(contentRef.current)
+        // doc.save()
     }
     console.log(router.query);
 
     return (
         <div className={styles.container}>
-            <button className={styles.zoomin} onClick={() => setZoom(Math.min(zoom + 0.1, 1.5))}> <i className="fas fa-plus"></i></button>
-            <button className={styles.zoomout} onClick={() => setZoom(Math.max(zoom - 0.1, 0.4))}> <i className="fas fa-minus"></i></button>
+            {/* <button className={styles.zoomin} onClick={() => setZoom(Math.min(zoom + 0.1, 1.5))}> <i className="fas fa-plus"></i></button>
+            <button className={styles.zoomout} onClick={() => setZoom(Math.max(zoom - 0.1, 0.4))}> <i className="fas fa-minus"></i></button> */}
             <button className={styles.download} onClick={save}> <i className="fas fa-download"></i></button>
             {/* <button className={styles.download} onClick={() => setIsSave(true)}> <i className="fas fa-download"></i></button> */}
             {/* {isSave && <Preview isSave={isSave} setIsSave={setIsSave} data={sample_data} forSave={true} />} */}
@@ -135,10 +177,12 @@ const Ref = () => {
                         <text x="612" y="110" ref={textRef} fontSize={29} >สถาบันวิทยาการหุ่นยนต์ภาคสนาม</text>
                         <text x="612" y="148.75" style={{ fontSize: "29" }}>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</text>
                         <text x="612" y="189.30" style={{ fontSize: "23" }}>ขอมอบประกาศนียบัตรฉบับนี้เพื่อแสดงว่า</text>
-                        <text x={612} y={239.41} fontSize={48}  >{`${data?.firstName || ''} ${data?.lastName || ''}`}</text>
-                        <text x={612} y={281.81} fontSize={23} >{data?.text1}</text>
-                        <text x={612} y={315} fontSize={23} >{data?.text2}</text>
-                        <text x={612} y={data?.text2 ? 349 : 315} fontSize={23} >{`ให้ไว้ ณ วันที่ ${dayjs.unix(data?.timestamp).add(543, 'year').locale('th').format('DD MMMM พ.ศ. YYYY')}`}</text>
+                        {data && <>
+                            <text x={612} y={239.41} fontSize={48}  >{`${data?.firstName || ''} ${data?.lastName || ''}`}</text>
+                            <text x={612} y={281.81} fontSize={23} >{data?.text1}</text>
+                            <text x={612} y={315} fontSize={23} >{data?.text2}</text>
+                            <text x={612} y={data?.text2 ? 349 : 315} fontSize={23} >{`ให้ไว้ ณ วันที่ ${dayjs.unix(data?.timestamp).add(543, 'year').locale('th').format('DD MMMM พ.ศ. YYYY')}`}</text>
+                        </>}
                         <text x="038" y="437.79" style={{ fontSize: "12", textAnchor: 'start', fontFamily: "TH Sarabun New" }}>{`Verify at ${(URL_MAPPTING as any)[course]}/certificates/${router.query.ref}`}</text>
                     </svg>
                     {/* <span style={{ right: '3.7vh', top: '20.4vh', fontSize: '6.4vh' }}>สถาบันวิทยาการหุ่นยนต์ภาคสนาม</span>
