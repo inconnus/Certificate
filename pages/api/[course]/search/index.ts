@@ -17,7 +17,8 @@ const startsWithUppercase = (text: String) => text.slice(0, 1).match(/[A-Z\u00C0
 
 const sortData = (found_matches: any[]) => {
   const group_by_date = groupBy(found_matches, 'timestamp')
-  const dates = Object.keys(group_by_date)
+  const dates = Object.keys(group_by_date).sort((a: any, b: any) => Number(a) - Number(b))
+  console.log({ dates })
   let arranged_data: any[] = []
   dates.map(timestamp => {
     // const sorted = group_by_date[timestamp].sort((a: any, b: any) => a.firstName.localeCompare(b.firstName, 'th', { sensitivity: 'base' }))
@@ -110,8 +111,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     case 2: {
       if (keys.includes('from') && keys.includes('to')) {
         let { from, to } = filter_params
+        // console.log(`---> case 2-from-to : ${from} - ${to}`)
         from = Math.round(dayjs(Number(from * 1000)).hour(0).minute(0).second(0).millisecond(0).valueOf() / 1000)
-        to = Math.round(dayjs(Number(from * 1000)).hour(23).minute(59).valueOf() / 1000)
+        to = Math.round(dayjs(Number(to * 1000)).hour(23).minute(59).valueOf() / 1000)
         console.log(`---> case 2-from-to : ${from} - ${to}`)
         found_matches = (await queryIndexBetween({
           tableName: process.env.TABLE_NAME,
@@ -171,7 +173,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       if (keys.includes('from') && keys.includes('to')) {
         let { from, to } = filter_params
         from = Math.round(dayjs(Number(from * 1000)).hour(0).minute(0).second(0).millisecond(0).valueOf() / 1000)
-        to = Math.round(dayjs(Number(from * 1000)).hour(23).minute(59).valueOf() / 1000)
+        to = Math.round(dayjs(Number(to * 1000)).hour(23).minute(59).valueOf() / 1000)
         console.log(`---> case 3-from-to-something : ${from} - ${to}`)
 
         if (keys.includes('firstName'))
@@ -234,7 +236,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       // if (keys.includes('from') && keys.includes('to')) {
       let { from, to } = filter_params
       from = Math.round(dayjs(Number(from * 1000)).hour(0).minute(0).second(0).millisecond(0).valueOf() / 1000)
-      to = Math.round(dayjs(Number(from * 1000)).hour(23).minute(59).valueOf() / 1000)
+      to = Math.round(dayjs(Number(to * 1000)).hour(23).minute(59).valueOf() / 1000)
 
       if (keys.includes('firstName') && keys.includes('lastName')) {
         const { firstName, lastName } = filter_params
@@ -291,7 +293,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     case 5: {
       let { firstName, lastName, email, from, to } = filter_params
       from = Math.round(dayjs(Number(from * 1000)).hour(0).minute(0).second(0).millisecond(0).valueOf() / 1000)
-      to = Math.round(dayjs(Number(from * 1000)).hour(23).minute(59).valueOf() / 1000)
+      to = Math.round(dayjs(Number(to * 1000)).hour(23).minute(59).valueOf() / 1000)
       console.log('---> case 5-all filter')
       found_matches = (await queryIndexBetween({
         tableName: process.env.TABLE_NAME,
