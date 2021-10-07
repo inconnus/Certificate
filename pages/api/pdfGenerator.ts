@@ -10,9 +10,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     const { name, text1, text2, date, code, organizer } = req.body
     const doc = new PDFDocument({ size: 'A4', layout: 'landscape' })
     doc.pipe(res)
-    doc.image(`images/template/${organizer}.png`, 0, 0, { width: width, height: height })
+    doc.image(`/public/images/template/${organizer}.png`, 0, 0, { width: width, height: height })
     // doc.image(`public/images/template/${organizer}.png`, 0, 0, { width: width, height: height })
-    doc.font('fonts/THSarabunNew Bold.ttf')
+    doc.font('/public/fonts/THSarabunNew Bold.ttf')
     doc.fontSize(37)
     doc.text('สถาบันวิทยาการหุ่นยนต์ภาคสนาม', 0, 109.63, { width: pad, align: 'right' })
     doc.text('มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี', 0, 159.34, { width: pad, align: 'right' })
@@ -24,7 +24,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     doc.text(date, 0, text2 ? 422.75 : 379.13, { width: pad, align: 'right' })
 
     doc.fontSize(15.4)
-    doc.font('fonts/THSarabunNew.ttf')
+    doc.font('/public/fonts/THSarabunNew.ttf')
     doc.text(`Verify at ${URL_MAPPTING[organizer]}/certificates/${code}`, 67, 548.68, { height: 1 }).link(67, 548.68, 250, 14, `https://${URL_MAPPTING[organizer]}/certificates/${code}`)
     doc.end()
     doc.on('end', () => {
