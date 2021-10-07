@@ -10,7 +10,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     const { name, text1, text2, date, code, organizer } = req.body
     const doc = new PDFDocument({ size: 'A4', layout: 'landscape' })
     doc.pipe(res)
-    doc.image(`public/images/template/${organizer}.png`, 0, 0, { width: width, height: height })
+    doc.image(`https://certificate-navy.vercel.app/images/template/${organizer}.png`, 0, 0, { width: width, height: height })
+    // doc.image(`public/images/template/${organizer}.png`, 0, 0, { width: width, height: height })
     doc.font('public/fonts/THSarabunNew Bold.ttf')
     doc.fontSize(37)
     doc.text('สถาบันวิทยาการหุ่นยนต์ภาคสนาม', 0, 109.63, { width: pad, align: 'right' })
