@@ -24,10 +24,13 @@ const Ref = () => {
     const { data } = useSWR(router.query.ref ? `/api/certificate/${router.query.ref}` : null, fetcher)
     const fileRef = useRef<any>()
     const intervalRef = useRef<any>()
+    const [show, setShow] = useState(false)
 
     useEffect(() => {
         if (!data) return
         (async () => {
+            if (!data.code) return
+            setShow(true)
             const res = await axios.post('/api/pdfGenerator', {
                 name: `${data.firstName} ${data.lastName}`,
                 text1: `${data.text1}`,
@@ -64,7 +67,7 @@ const Ref = () => {
     }
 
     return (
-        <div className={styles.container}>
+        show ? <div className={styles.container}>
             {/* <button className={styles.zoomin} onClick={() => setZoom(Math.min(zoom + 0.1, 1.5))}> <i className="fas fa-plus"></i></button>
             <button className={styles.zoomout} onClick={() => setZoom(Math.max(zoom - 0.1, 0.4))}> <i className="fas fa-minus"></i></button> */}
             <button className={styles.download} onClick={save}> <i className="fas fa-download"></i></button>
@@ -97,7 +100,7 @@ const Ref = () => {
                 </div>
             </div>
 
-        </div>
+        </div> : null
     )
 }
 
