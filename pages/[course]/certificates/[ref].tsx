@@ -65,9 +65,10 @@ const Ref = () => {
         }
         intervalRef.current = setInterval(inter, 500)
     }
-
+    if (!data) return <span className={styles.loading}>กำลังโหลด...</span>
+    if (!data.code) return <span className={styles.loading}>ไม่พบข้อมูล</span>
     return (
-        show ? <div className={styles.container}>
+        <div className={styles.container}>
             {/* <button className={styles.zoomin} onClick={() => setZoom(Math.min(zoom + 0.1, 1.5))}> <i className="fas fa-plus"></i></button>
             <button className={styles.zoomout} onClick={() => setZoom(Math.max(zoom - 0.1, 0.4))}> <i className="fas fa-minus"></i></button> */}
             <button className={styles.download} onClick={save}> <i className="fas fa-download"></i></button>
@@ -100,7 +101,7 @@ const Ref = () => {
                 </div>
             </div>
 
-        </div> : null
+        </div>
     )
 }
 
